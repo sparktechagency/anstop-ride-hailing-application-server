@@ -1,0 +1,118 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Socket.IO Client with Token</title>
+</head>
+<body>
+	<h1>Socket.IO Auth Example</h1>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		// Replace with your actual JWT token
+		const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODgxYjQ1MWYzZmE3OWQwMDIyZDBkNDMiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc1MzMzMTI3OSwiZXhwIjoxNzY0MTMxMjc5fQ.9M_TTw39DBpTOvoVxBrAYCpXc9-u5Jal3gJUPfJKhzE";
+
+		const socket = io({
+			auth: {
+				token,
+				auth: token,
+				authorization: token,
+			},
+			extraHeaders: {
+				auth: token,
+				authorization: token,
+			},
+		});
+		socket.on("connect", () => {
+			console.log("Connected to socket server!", socket.id);
+		});
+
+		socket.on("connect_error", (err) => {
+			console.error("Connection failed:", err.message);
+		});
+
+		socket.on("welcome", (msg) => {
+			console.log("Server says:", msg);
+		});
+	</script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Socket.IO Client with Token & Emit</title>
+</head>
+<body>
+	<h1>Socket.IO Auth & Emit Message</h1>
+
+	<input
+		type="text"
+		id="msgInput"
+		placeholder="Type your message here (optional)"
+		style="width: 300px; padding: 8px;"
+	/>
+	<button id="sendBtn" style="padding: 8px 16px;">Send Message</button>
+
+	<div id="log" style="margin-top: 20px; font-family: monospace;"></div>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODgxYjQ1MWYzZmE3OWQwMDIyZDBkNDMiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc1MzMzMTI3OSwiZXhwIjoxNzY0MTMxMjc5fQ.9M_TTw39DBpTOvoVxBrAYCpXc9-u5Jal3gJUPfJKhzE"; // replace with your real token
+
+		const socket = io({
+			auth: {
+				token,
+				auth: token,
+				authorization: token,
+			},
+			extraHeaders: {
+				auth: token,
+				authorization: token,
+			},
+		});
+
+		const logDiv = document.getElementById("log");
+		const msgInput = document.getElementById("msgInput");
+		const sendBtn = document.getElementById("sendBtn");
+
+		function log(msg) {
+			const p = document.createElement("p");
+			p.textContent = msg;
+			logDiv.appendChild(p);
+		}
+
+		socket.on("connect", () => {
+			log(`✅ Connected with socket id: ${socket.id}`);
+		});
+
+		socket.on("connect_error", (err) => {
+			log(`❌ Connection error: ${err.message}`);
+		});
+
+		socket.on("welcome", (msg) => {
+			log(`💬 Server says: ${msg}`);
+		});
+
+		// Listen for any generic message event from server
+		socket.on("message", (msg) => {
+			log(`📨 Message from server: ${msg}`);
+		});
+
+		sendBtn.addEventListener("click", () => {
+			let message = msgInput.value.trim();
+			if (!message) {
+				message = "Default message from client";
+			}
+
+			socket.emit("message", message);
+			log(`➡️ Sent: ${message}`);
+			msgInput.value = "";
+		});
+	</script>
+</body>
+</html>
