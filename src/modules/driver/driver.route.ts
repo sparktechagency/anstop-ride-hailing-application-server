@@ -1,8 +1,8 @@
 import { Router } from "express";
 import auth from "../../middleware/auth";
 import requestValidator from "../../middleware/request-validator";
-import { driverOnboardingValidationSchema } from "./driver.validation";
 import { DriverControllers } from "./driver.controller";
+import { DriverValidation } from "./driver.validation";
 
 
 const router = Router();
@@ -11,8 +11,14 @@ const router = Router();
 router.post(
 	"/onboard",
 	auth("Driver"),
-	requestValidator(driverOnboardingValidationSchema),
+	requestValidator(DriverValidation.OnboardingSchema),
 	DriverControllers.onboardDriver,
+);
+
+router.get(
+	"/onboarding-status",
+	auth("COMMON"),
+	DriverControllers.checkOnboardingStatus,
 );
 
 

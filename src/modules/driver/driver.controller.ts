@@ -6,9 +6,6 @@ import { DriverService } from "./driver.service";
 
 const onboardDriver = asyncHandler(async (req, res) => {
 	const { _id } = req.user;
-	if (!req.user && !_id) {
-		throw new ApiError(httpStatus.UNAUTHORIZED, "User not authenticated");
-	}
 	const payload = req.body;
 	await DriverService.onboardDriver(_id, payload);
 	res.status(httpStatus.CREATED).json(
@@ -20,6 +17,20 @@ const onboardDriver = asyncHandler(async (req, res) => {
 	);
 });
 
+const checkOnboardingStatus = asyncHandler(async (req, res) => {
+	const { _id } = req.user;
+
+	const status = await DriverService.checkOnboardingStatus(_id);
+	res.status(httpStatus.OK).json(
+		new ApiResponse({
+			statusCode: httpStatus.OK,
+			message: "Driver onboarding status retrieved successfully",
+			data: status,
+		})
+	);
+});
+
 export const DriverControllers = {
 	onboardDriver,
+	checkOnboardingStatus,
 };

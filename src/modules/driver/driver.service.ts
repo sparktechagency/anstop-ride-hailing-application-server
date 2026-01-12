@@ -1,23 +1,23 @@
 import mongoose, { Types } from "mongoose";
 import ApiError from "../../utils/ApiError";
 import { User } from "../user/user.model";
-import { TDriverOnboarding } from "./driver.interface";
 import { Driver } from "./driver.model";
 import httpStatus from "http-status";
+import { USER_ROLES } from "../user/user.constant";
+import { TOnboardDriverDto } from "./driver.dto";
 
-export const onboardDriver = async (
+const onboardDriver = async (
 	userId: Types.ObjectId,
-	payload: TDriverOnboarding
+	payload: TOnboardDriverDto
 ): Promise<void> => {
 	const {
-		username,
-		email,
-		avatar,
-		regionalInformation,
-		serviceType,
-		vehicleInformation,
-		workEligibilityDocument,
-		vehicleDocuments,
+		nid,
+		driverLicense,
+		carInformation,
+		profilePicture,
+		dateOfBirth,
+		address,
+		gender,
 	} = payload;
 
 	const user = await User.findById(userId).select("_id isOnboarded");
@@ -27,48 +27,48 @@ export const onboardDriver = async (
 	}
 
 	if (user.isOnboarded) {
+
+		const hasDriverRole = user.role.includes(USER_ROLES.DRIVER)
+
+		if(!hasDriverRole){
+			user.role.push(USER_ROLES.DRIVER)
+			await user.save()
+		}
+
 		throw new ApiError(
 			httpStatus.BAD_REQUEST,
 			"Driver is already onboarded"
 		);
+
 	}
 
-	const session = await mongoose.startSession();
-
-	try {
-		// performing mongodb transaction
-		await session.withTransaction(async () => {
-			user.username = username;
-			user.email = email;
-			user.avatar = avatar;
-			user.isVerified = true;
-			user.isOnboarded = true;
-			await user.save({ session });
-
-			// create Driver
-			await Driver.create(
-				{
-					user: user._id,
-					regionalInformation,
-					serviceType,
-					vehicleInformation,
-					workEligibilityDocument,
-					vehicleDocuments,
-				},
-				{ session }
-			);
-		});
-	} catch (error) {
-		console.error("Driver onboarding transaction failed:", error);
-		throw new ApiError(
-			httpStatus.INTERNAL_SERVER_ERROR,
-			"Driver onboarding failed"
-		);
-	} finally {
-		session.endSession();
+	user.isOnboarded = true;
+	const hasDriverRole = user.role.includes(USER_ROLES.DRIVER)
+	if(!hasDriverRole){
+		user.role.push(USER_ROLES.DRIVER)
 	}
+	user.nid = nid;
+	user.driverLicense = driverLicense;
+	user.carInformation = carInformation;
+	user.profilePicture = profilePicture;
+	user.dateOfBirth = dateOfBirth;
+	user.address = address;
+	user.gender = gender;
+	await user.save();
+
+	
+};
+
+
+const checkOnboardingStatus = async (userId: Types.ObjectId): Promise<boolean> => {
+	const user = await User.findById(userId).select("_id isOnboarded");
+	if (!user) {
+		throw new ApiError(httpStatus.NOT_FOUND, "Driver not found");
+	}
+	return user?.isOnboarded ?? false;
 };
 
 export const DriverService = {
 	onboardDriver,
+	checkOnboardingStatus,
 };
