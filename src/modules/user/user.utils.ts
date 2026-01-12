@@ -1,10 +1,7 @@
-import ApiError from "../../utils/ApiError";
-import { TDriverOnboarding } from "../driver/driver.interface";
-import { Driver } from "../driver/driver.model";
-import httpStatus from "http-status";
-import { User } from "../user/user.model";
-import mongoose from "mongoose";
-import { Rider } from "../rider/rider.model";
+import { TSaveAddressDto } from "./user.dto";
+import { TLocation } from "./user.interface";
 
-
-
+	export const locationExists = (existing:TLocation, incoming: TSaveAddressDto) => 
+	existing?.name === incoming.name ||
+	(existing?.coordinates[0] === incoming.longitude && 
+	 existing?.coordinates[1] === incoming.latitude);

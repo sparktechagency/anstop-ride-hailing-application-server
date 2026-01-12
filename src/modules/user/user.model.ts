@@ -1,85 +1,166 @@
-import { Schema, model } from "mongoose";
-import { Roles, UserRoles } from "../../shared/shared.interface";
-import { addressSchema, userNameSchema } from "../../shared/shared.model";
-import paginate from "../../utils/paginate";
-import { TUser } from "./user.interface";
+import { model, Schema } from "mongoose";
+import {
+	TUser,
+	TRole,
+	TLocation,
+	TKYCDocument,
+	TCarInformation,
+} from "./user.interface";
+import { GENDER, USER_ROLES, USER_STATUS } from "./user.constant";
+import bcrypt from "bcrypt";
 
-const UserSchema = new Schema<TUser>(
+const coordinatesValidation = (coordinates: number[]) => {
+	return (
+		coordinates.length === 2 &&
+		coordinates[0] >= -180 &&
+		coordinates[0] <= 180 &&
+		coordinates[1] >= -90 &&
+		coordinates[1] <= 90
+	);
+};
+
+const locationScheama = new Schema<TLocation>({
+	name: {
+		type: String,
+	},
+	coordinates: {
+		type: [Number],
+		validate: {
+			validator: function (coordinates: number[]) {
+				return coordinatesValidation(coordinates);
+			},
+			message:
+				"Coordinates must be valid [longitude, latitude] and within the range of -180 to 180 for longitude and -90 to 90 for latitude",
+		},
+	},
+});
+
+const kycDocumentSchema = new Schema<TKYCDocument>({
+	number: {
+		type: String,
+	},
+	frontPicture: {
+		type: String,
+	},
+	backPicture: {
+		type: String,
+	},
+});
+
+const carInformationSchema = new Schema<TCarInformation>({
+	brand: {
+		type: String,
+	},
+	model: {
+		type: String,
+	},
+	yearOfManufacture: {
+		type: Date,
+	},
+	licensePlate: {
+		number: {
+			type: String,
+		},
+		picture: {
+			type: String,
+		},
+	},
+	registrationCertificate: {
+		number: {
+			type: String,
+		},
+		fronPicture: {
+			type: String,
+		},
+		backPicture: {
+			type: String,
+		},
+	},
+});
+
+const userSchema = new Schema<TUser>(
 	{
-		username: userNameSchema,
-
-		phoneNumber: {
+		name: {
+			type: String,
+			required: true,
+		},
+		email: {
 			type: String,
 			required: true,
 			unique: true,
-			trim: true,
 		},
-
-		email: {
+		phoneNumber: {
 			type: String,
-			unique: true,
-			trim: true,
 		},
-
+		password: {
+			type: String,
+			required: true,
+		},
 		avatar: {
 			type: String,
-			default: "",
 		},
-
 		role: {
+			type: [String],
+			enum: Object.values(USER_ROLES),
+			required: true,
+		},
+		status: {
 			type: String,
-			enum: Roles,
-			default: UserRoles.Rider,
+			enum: Object.values(USER_STATUS),
+			default: "PENDING",
 		},
-
-		address: addressSchema,
-
-		languagePreference: {
+		homeLocation: locationScheama,
+		workLocation: locationScheama,
+		bookMarks: [locationScheama],
+		dateOfBirth: {
+			type: Date,
+		},
+		gender: {
 			type: String,
-			enum: ["en", "es", "fr"],
-			default: "en",
+			enum: Object.values(GENDER),
 		},
-
-		isVerified: {
-			type: Boolean,
-			default: false,
-		},
-
-		isOnboarded: {
-			type: Boolean,
-			default: false,
-		},
-
-		fcmTokenDetails: {
-			fcmToken: {
-				type: String,
-				default: "",
-			},
-		},
-
-		socketId: {
+		nid: kycDocumentSchema,
+		drivingLicense: kycDocumentSchema,
+		carInformation: carInformationSchema,
+		profilePicture: {
 			type: String,
-			default: "",
 		},
-
+		location: {
+			coordinates: [Number],
+		},
+		locationName: {
+			type: String,
+		},
+		fcmToken:{
+			type: String,
+			default: ""
+		},
 		isOnline: {
 			type: Boolean,
 			default: false,
 		},
-
-		isDeleted: {
-			type: Boolean,
-			default: false,
-		},
-
 		isEngaged: {
 			type: Boolean,
 			default: false,
 		},
-
 		engagedWith: {
 			type: Schema.Types.ObjectId,
 			ref: "User",
+		},
+		address: {
+			type: String,
+		},
+		isOnboarded: {
+			type: Boolean,
+			default: false,
+		},
+		isEmailVerified: {
+			type: Boolean,
+			default: false,
+		},
+		isDeleted: {
+			type: Boolean,
+			default: false,
 		},
 	},
 	{
@@ -87,6 +168,24 @@ const UserSchema = new Schema<TUser>(
 	}
 );
 
-UserSchema.plugin(paginate);
+userSchema.index({ location: "2dsphere" });
 
-export const User = model<TUser>("User", UserSchema);
+
+userSchema.pre("save", async function (next) {
+	const user = this;
+
+	if (!user.isModified("password")) return next();
+
+	try {
+		console.log("Hashing password before saving user...", user);
+		const salt = await bcrypt.genSalt(
+			Number(process.env.BCRYPT_SALT_ROUNDS)
+		);
+		user.password = await bcrypt.hash(user.password, salt);
+		next();
+	} catch (err) {
+		next(err as Error);
+	}
+});
+
+export const User = model<TUser>("User", userSchema);
