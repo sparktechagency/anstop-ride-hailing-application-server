@@ -1,37 +1,56 @@
 import { Router } from "express";
-import { AuthControllers } from "./auth.controller";
 import requestValidator from "../../middleware/request-validator";
-import {
-	optVerificationValidationSchema,
-	userRegistrationValidationSchema,
-} from "./auth.validation";
+import { AuthValidation } from "./auth.validation";
+import { AuthControllers } from "./auth.controller";
+import auth from "../../middleware/auth";
+import { USER_ROLES } from "../user/user.constant";
 
 const router = Router();
 
 // User registration routes
 
 router.post(
-	"/authenticate",
-	requestValidator(userRegistrationValidationSchema),
-	AuthControllers.createUser
+	"/sign-up",
+	requestValidator(AuthValidation.SignUpScheam),
+	AuthControllers.SignUp
 );
 
-// verify OTP routes
+router.post(
+	"/sign-in",
+	requestValidator(AuthValidation.SignInSchema),
+	AuthControllers.SignIn
+);
 
 router.post(
 	"/verify-otp",
-	requestValidator(optVerificationValidationSchema),
+	requestValidator(AuthValidation.OtpVerificationSchema),
 	AuthControllers.verifyOTP
 );
 
-// resend OTP routes
-
 router.post(
 	"/resend-otp",
-	requestValidator(
-		optVerificationValidationSchema.pick({ phoneNumber: true })
-	),
+	requestValidator(AuthValidation.ResendOtpSchema),
 	AuthControllers.resendOTP
+);
+
+router.post(
+	"/forgot-password",
+	requestValidator(AuthValidation.ForgotPasswordSchema),
+	AuthControllers.forgotPassword
+);
+
+router.post(
+	"/reset-password",
+	auth("COMMON"),
+	requestValidator(AuthValidation.ResetPasswordSchema),
+	AuthControllers.resetPassword
+);
+
+router.post(
+	"/change-password",
+	auth("COMMON"),
+	requestValidator(AuthValidation.ChangePasswordSchema),
+	AuthControllers.changePassword
 );
 
 export const AuthRoutes = router;

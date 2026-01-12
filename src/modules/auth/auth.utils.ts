@@ -1,8 +1,8 @@
 import jwt, { SignOptions } from "jsonwebtoken";
-import { TRoles } from "../../shared/shared.interface";
+import { TRole } from "../user/user.interface";
 
 export const GenerateToken = (
-    jwtPayload: { _id: string, role: TRoles },
+    jwtPayload: { _id: string, role: TRole[] },
     secret: string,
     expiresIn: SignOptions["expiresIn"],
 ): string => {

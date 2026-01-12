@@ -1,18 +1,14 @@
 import ApiError from "../../utils/ApiError";
 import { User } from "../user/user.model";
 import httpStatus from "http-status";
-import { OTPToken } from "../otpToken/otpToken.model";
 import bcrypt from "bcrypt";
-import {
-	TOptVerification,
-	TResendOTP,
-	TUserRegistration,
-} from "./auth.validation";
-import { sendOtpToUser } from "../../utils/sendSMS";
-import { GenerateOTP } from "../otpToken/otpToken.utils";
 import { GenerateToken } from "./auth.utils";
 import { config } from "../../config";
-import { Driver } from "../driver/driver.model";
+import { TChangePasswordDTO, TForgotPasswordDTO, TOtpVerificationDTO, TResendOtpDTO, TResetPasswordDTO, TUserSignInDTO, TUserSignUpDTO } from "./auth.dto";
+import { EmailPublicApi } from "../../utils/email/emailPublicApi";
+import { OTP_TYPE } from "../otpToken/otpToken.constant";
+import { Types } from "mongoose";
+import { OtpInternalApi } from "../otpToken/otpToken.internalApi";
 
 // const registerUserIntoDB = async (
 // 	userData: UserRegistration
@@ -88,88 +84,123 @@ import { Driver } from "../driver/driver.model";
 // 	return { message: "OTP verified successfully" };
 // };
 
-const registerUserIntoDB = async (
-	userData: TUserRegistration
-): Promise<{ message: string; shouldOnboard: boolean }> => {
-	const { role, phoneNumber } = userData;
-
-	let user = await User.findOne({
-		phoneNumber,
-		role,
-	});
-
-	console.log("user exist", user);
+const SignUpUser = async (userData: TUserSignUpDTO): Promise<void> => {
+	const { email } = userData;
+	let user = await User.findOne({ email });
 
 	if (user) {
-		const existingOtpToken = await OTPToken.find({
+		if (user.isEmailVerified) {
+			throw new ApiError(
+				httpStatus.BAD_REQUEST,
+				"Account already exists with these credentials"
+			);
+		}
+
+		// invalidate all existing OTP tokens
+		await OtpInternalApi.invalidateOTPToken({
 			userId: user._id,
 			isValid: true,
 		});
 
-		console.log("existingOtpToken: ", existingOtpToken);
+		if (userData?.name) user.name = userData.name;
+		if (userData?.password) user.password = userData.password;
+		if (userData?.role) user.role = [userData.role];
 
-		// check if the user requesting to fast for resend OTP
-		if (existingOtpToken && existingOtpToken.length > 0) {
-			console.log("existingOtpToken: ", existingOtpToken);
-			existingOtpToken.forEach(async (otpToken) => {
-				otpToken.isValid = false;
-				await otpToken.save();
-			});
-		}
-		const otp = GenerateOTP();
-		console.log("inside if user exist", otp);
-		await sendOtpToUser(user.phoneNumber, otp);
 
-		// Save the OTP to the database
-		const otpToken = new OTPToken({
-			userId: user._id,
-			otp: otp,
-			expiresAt: new Date(Date.now() + 10 * 60 * 1000), // OTP valid for 10 minutes
-		});
-		await otpToken.save();
-
-		return {
-			message:
-				"You have already registered. OTP sent to your phone.Please verify to login.",
-			shouldOnboard: user.isOnboarded ? false : true,
-		};
+		await user.save();
 	} else {
-		let newUser = new User({
-			phoneNumber: userData?.phoneNumber,
-			role: userData?.role,
+		// Create new user
+		user = new User({
+			...userData,
+			role: [userData.role],
 		});
-		newUser.save();
-
-		const otp = GenerateOTP();
-		console.log("inside else user not exist", otp);
-		await sendOtpToUser(newUser.phoneNumber, otp);
-
-		const otpToken = new OTPToken({
-			userId: newUser._id,
-			otp: otp,
-			expiresAt: new Date(Date.now() + 10 * 60 * 1000), // OTP valid for 10 minutes
-		});
-		await otpToken.save();
-
-		return {
-			message:
-				"Your account has been created successfully. OTP sent to your phone.Verify to continue the registration process.",
-			shouldOnboard: true,
-		};
+		await user.save();
 	}
+
+	const otpDetails = await OtpInternalApi.createOTPToken({
+		userId: user._id,
+		type: "EMAIL_VERIFICATION",
+	});
+	// TODO: impliement queueing system / background job for sending email with retry mechanism
+
+	new EmailPublicApi().sendOtpEmail(
+		"EMAIL_VERIFICATION",
+		{ email: user.email, username: user.name },
+		otpDetails.otp,
+		otpDetails.expirationTime
+	);
 };
 
-const verifyOTP = async (
-	payload: TOptVerification
-): Promise<{ token: string }> => {
-	// Find the user by phone number
-
-	let user = await User.findOne({
-		phoneNumber: payload.phoneNumber,
-		role: payload.role,
+const SignInUser = async(payload: TUserSignInDTO) => {
+	const user = await User.findOne({
+		email: payload.email,
 	});
 
 	console.log(user);
+
+	if (!user) throw new ApiError(httpStatus.NOT_FOUND, "Invalid credentials.");
+
+	const isPasswordValid = await bcrypt.compare(
+		payload.password,
+		user.password
+	);
+
+	if (!isPasswordValid)
+		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials.");
+
+	if (!user.isEmailVerified) {
+
+		//invalidate all existing OTP tokens
+		await OtpInternalApi.invalidateOTPToken({
+			userId: user._id,
+			isValid: true,
+		});
+
+		const otpDetails = await OtpInternalApi.createOTPToken({
+			userId: user._id,
+			type: "EMAIL_VERIFICATION",
+		});
+		// TODO: impliement queueing system / background job for sending email with retry mechanism
+
+		new EmailPublicApi().sendOtpEmail(
+			"EMAIL_VERIFICATION",
+			{ email: user.email, username: user.name },
+			otpDetails.otp,
+			otpDetails.expirationTime
+		);	
+
+		return {
+			needsVerification: true,
+			accessToken: "",
+			refreshToken: "",
+		};
+	}
+
+	const accessToken = GenerateToken(
+		{ _id: user._id.toString(), role: user.role },
+		config.JWT.access_secret,
+		config.JWT.access_expiration_time
+	);
+
+	const refreshToken = GenerateToken(
+		{ _id: user._id.toString(), role: user.role },
+		config.JWT.refresh_secret,
+		config.JWT.refresh_expiration_time 
+	);
+
+	return {
+		accessToken,
+		refreshToken,
+		role: user.role,
+		needsVerification: false,
+	};
+};
+
+
+const verifyOTP = async (payload: TOtpVerificationDTO) => {
+	const user = await User.findOne({
+		email: payload.email,
+	});
 
 	if (!user) {
 		throw new ApiError(
@@ -178,9 +209,9 @@ const verifyOTP = async (
 		);
 	}
 
-	// Find the OTP token for the user
-	const otpToken = await OTPToken.findOne({
+	const otpToken = await OtpInternalApi.getOtpToken({
 		userId: user._id,
+		type: payload.type,
 		isValid: true,
 	});
 
@@ -200,49 +231,42 @@ const verifyOTP = async (
 		throw new ApiError(httpStatus.UNAUTHORIZED, "OTP has expired");
 	}
 
-	// Check if the OTP matches
-
 	const isOTPValid = await bcrypt.compare(payload.otp, otpToken.otp);
 
 	if (!isOTPValid) {
 		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid OTP");
 	}
 
-	// Mark the OTP as verified
+	await OtpInternalApi.invalidateOTPToken({
+		_id: otpToken._id,
+	});
 
-	otpToken.isValid = false; // Set isValid to false to mark it as used
-	await otpToken.save();
-
-	const token = GenerateToken(
+	const accessToken = GenerateToken(
 		{ _id: user._id.toString(), role: user.role },
-		config.jwt_access_secret as string,
-		config.jwtExpiry
+		config.JWT.access_secret,
+		config.JWT.access_expiration_time
 	);
 
-	if (!user.isVerified) {
-		user.isVerified = true;
+	const refreshToken = GenerateToken(
+		{ _id: user._id.toString(), role: user.role },
+		config.JWT.refresh_secret,
+		config.JWT.refresh_expiration_time 
+	);
+
+
+	if (!user.isEmailVerified) {
+		// mark user as verified
+		user.isEmailVerified = true;
 		await user.save();
 	}
-	return { token };
+	return { accessToken, refreshToken, role: user.role	 };
 };
 
-const resendOTP = async (userData: TResendOTP): Promise<void> => {
-	let user = await User.findOne({
-		phoneNumber: userData?.phoneNumber,
-		role: userData?.role,
+const resendOTP = async (userData: TResendOtpDTO): Promise<void> => {
+
+	const user = await User.findOne({
+		email: userData?.email,
 	});
-	// // checking if the user is exist
-	// if (userData.role === "Rider") {
-	// 	user = await User.findOne({
-	// 		phoneNumber: userData?.phoneNumber,
-	// 		isVerified: true,
-	// 	});
-	// } else {
-	// 	user = await Driver.findOne({
-	// 		phoneNumber: userData?.phoneNumber,
-	// 		isVerified: true,
-	// 	});
-	// }
 
 	if (!user) {
 		throw new ApiError(
@@ -251,7 +275,7 @@ const resendOTP = async (userData: TResendOTP): Promise<void> => {
 		);
 	}
 
-	const existingOtpToken = await OTPToken.findOne({
+	const existingOtpToken = await OtpInternalApi.getOtpToken({
 		userId: user._id,
 		isValid: true,
 	});
@@ -270,25 +294,103 @@ const resendOTP = async (userData: TResendOTP): Promise<void> => {
 
 	// If an existing valid OTP token is found, invalidate it
 
-	if (existingOtpToken) {
-		existingOtpToken.isValid = false; // Invalidate the existing OTP
-		await existingOtpToken.save();
+	await OtpInternalApi.invalidateOTPToken({
+		userId: user._id,
+		isValid: true,
+	});
+
+
+	const otpDetails = await OtpInternalApi.createOTPToken({
+		userId: user._id,
+		type: userData.type,
+	});
+
+	const emailService = new EmailPublicApi();
+	await emailService.sendOtpEmail(
+		userData.type,
+		{ email: user.email, username: user.name },
+		otpDetails.otp,
+		otpDetails.expirationTime
+	);
+};
+
+const forgotPassword = async (email: string) => {
+	const user = await User.findOne({ email });
+	if (!user) {
+		throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
 	}
 
-	const otp = GenerateOTP();
-	await sendOtpToUser(user.phoneNumber, otp);
 
-	// Save the OTP to the database
-	const otpToken = new OTPToken({
+	await OtpInternalApi.invalidateOTPToken({
 		userId: user._id,
-		otp: otp,
-		expiresAt: new Date(Date.now() + 10 * 60 * 1000), // OTP valid for 10 minutes
 	});
-	await otpToken.save();
+
+
+	const otpDetails = await OtpInternalApi.createOTPToken({
+		userId: user._id,
+		type: OTP_TYPE.PASSWORD_RESET,
+	});
+
+
+	const emailService = new EmailPublicApi();
+	await emailService.sendOtpEmail(
+		OTP_TYPE.PASSWORD_RESET,
+		{ email: user.email, username: user.name },
+		otpDetails.otp,
+		otpDetails.expirationTime
+	);
+};
+
+const resetPassword = async (userId: Types.ObjectId, password: string) => {
+	// TODO: reset password should be more secure and robust
+	const user = await User.findById(userId);
+	if (!user) {
+		throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
+	}
+
+	console.log(user);
+
+	user.password = password;
+	if (!user.isEmailVerified) {
+		user.isEmailVerified = true;
+	}
+	await user.save();
+
+	// TODO: send email for password reset success
+};
+
+const changePassword = async (
+	userId: Types.ObjectId,
+	payload: TChangePasswordDTO
+) => {
+	const { currentPassword, newPassword } = payload;
+
+	console.log(payload);
+
+	const user = await User.findById(userId).select("+password");
+	if (!user) {
+		throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
+	}
+	console.log(user);
+
+	const isPasswordValid = await bcrypt.compare(
+		currentPassword,
+		user.password
+	);
+	if (!isPasswordValid) {
+		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials.");
+	}
+
+	user.password = newPassword;
+	await user.save();
 };
 
 export const authService = {
-	registerUserIntoDB,
+	SignUpUser,
+	SignInUser,
 	verifyOTP,
 	resendOTP,
+	forgotPassword,
+	resetPassword,
+	changePassword,
 };

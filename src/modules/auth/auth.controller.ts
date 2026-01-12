@@ -4,33 +4,41 @@ import asyncHandler from "../../utils/asyncHandler";
 import { authService } from "./auth.service";
 import httpStatus from "http-status";
 
-const createUser = asyncHandler(async (req, res) => {
+const SignUp = asyncHandler(async (req, res) => {
     const userData = req.body;
 
-    const result = await authService.registerUserIntoDB(userData);
+     await authService.SignUpUser(userData);
 
-    // if user is not created then throw error
-    if (!result) {
-        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "User registration failed");
-    }
 
     res.status(httpStatus.CREATED).json(
         new ApiResponse({
             statusCode: httpStatus.CREATED,
-            message: result.message ||"User is created successfully",
-            data: {shouldOnboard: result.shouldOnboard},
+            message: "Your account is created successfully. Please check your email for verification.",
+            data: null,
         }),
     );
-});
+})
+
+const SignIn = asyncHandler(async (req, res) => {
+    const payload = req.body;
+
+    const result = await authService.SignInUser(payload);
+
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "You are signed in successfully.",
+            data: result,
+        }),
+    );
+})
 
 const verifyOTP = asyncHandler(async (req, res) => {
     const payload= req.body;
 
     const result = await authService.verifyOTP(payload);
 
-    if (!result) {
-        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to verify OTP");
-    }
 
     res.status(httpStatus.OK).json(
         new ApiResponse({
@@ -42,9 +50,12 @@ const verifyOTP = asyncHandler(async (req, res) => {
 });
 
 const resendOTP = asyncHandler(async (req, res) => {
-    const { phoneNumber } = req.body;
+    const { email, type } = req.body;
 
-    await authService.resendOTP(phoneNumber);
+    await authService.resendOTP({
+        email,
+        type,
+    });
 
     res.status(httpStatus.OK).json(
         new ApiResponse({
@@ -55,9 +66,59 @@ const resendOTP = asyncHandler(async (req, res) => {
     );
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    await authService.forgotPassword(email);
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Please check your email for reset password instructions.",
+            data: null,
+        }),
+    );
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { password } = req.body;
+    const userId = req.user._id
+
+    await authService.resetPassword(userId, password);
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Password reset successfully",
+            data: null,
+        }),
+    );
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+    const { newPassword, currentPassword } = req.body;
+    const userId = req.user._id
+
+    await authService.changePassword(userId, {currentPassword, newPassword});
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Password changed successfully",
+            data: null,
+        }),
+    );
+});
+
+
+
 
 export const AuthControllers = {
-    createUser,
+    SignUp,
+    SignIn,
     verifyOTP,
     resendOTP,
+    forgotPassword,
+    resetPassword,
+    changePassword,
 };
