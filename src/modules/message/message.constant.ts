@@ -1,1 +1,0 @@
-export const MESSAGE_UPLOADS_FOLDER = 'uploads/messages';
