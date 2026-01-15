@@ -1,4 +1,19 @@
-import { z } from "zod";
-import { addTokenValidationSchema } from "./notification.validation";
+import { Model, Types } from "mongoose";
+import { TPaginateOptions, TPaginateResult } from "../../types/paginate";
 
-export type TAddTokenPayload = z.infer<typeof addTokenValidationSchema>
+export interface INotification {
+    _id?: Types.ObjectId;
+    userId: Types.ObjectId;
+    icon: string;
+    title: string;
+    description: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+export interface INotificationModel extends Model<INotification> {
+    paginate: (
+        filter: object,
+        options: TPaginateOptions
+    ) => Promise<TPaginateResult<INotification>>;
+}

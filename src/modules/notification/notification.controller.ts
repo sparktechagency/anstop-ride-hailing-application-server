@@ -3,36 +3,45 @@ import asyncHandler from "../../utils/asyncHandler";
 import { NotificationService } from "./notification.service";
 import httpStatus from "http-status";
 
-const registerUserDevice = asyncHandler(async (req, res) => {
-	const { fcmToken: token } = req.body;
-	const { _id: userId, role } = req.user;
 
-	console.log("Route hit",req.user, req.body);
 
-	await NotificationService.registerUserDevice(userId, role, token);
-	res.status(httpStatus.OK).json(
-		new ApiResponse({
-			statusCode: httpStatus.OK,
-			message: "Notificaton token added successfully",
-			data: null,
-		})
-	);
-});
+// const driverAccountVerificaitonNotification = asyncHandler(async (req, res) => {
+// 	const { _id: userId } = req.user;
+// 	await NotificationService.driverAccountVerificaitonNotification(userId.toString());
+// 	res.status(httpStatus.OK).json(
+// 		new ApiResponse({
+// 			statusCode: httpStatus.OK,
+// 			message:
+// 				"Driver account verification notification sent successfully",
+// 			data: null,
+// 		})
+// 	);
+// });
 
-const driverAccountVerificaitonNotification = asyncHandler(async (req, res) => {
+
+const getAllNotifications = asyncHandler(async (req, res) => {
 	const { _id: userId } = req.user;
-	await NotificationService.driverAccountVerificaitonNotification(userId);
+	const query = req.validatedData.query;
+
+	const options = {
+		page: query.page,
+		limit: query.limit,
+		sortBy: query.sortBy,
+		sortOrder: query.sortOrder,
+		
+	}
+
+	const notifications = await NotificationService.getNotifications(userId, options);
 	res.status(httpStatus.OK).json(
 		new ApiResponse({
 			statusCode: httpStatus.OK,
-			message:
-				"Driver account verification notification sent successfully",
-			data: null,
+			message: "Notifications fetched successfully",
+			data: notifications,
 		})
 	);
 });
 
 export const NotificationControllers = {
-	registerUserDevice,
-	driverAccountVerificaitonNotification,
+	getAllNotifications
+	// driverAccountVerificaitonNotification,
 };

@@ -1,33 +1,22 @@
-import { getMessaging, Message } from "firebase-admin/messaging";
-import { User } from "../user/user.model";
-import { TAddTokenPayload } from "./notification.interface";
-import ApiError from "../../utils/ApiError";
-import httpStatus from "http-status";
-import { Driver } from "../driver/driver.model";
-import { GetUserByIdAndRole } from "../../utils/GetUserByIdAndRole";
-import { TRoles } from "../../shared/shared.interface";
-import { Admin } from "../admin/admin.model";
+import { Types } from "mongoose";
+import { INotification } from "./notification.interface";
+import {Notification} from "./notification.model";
+import { Message } from "firebase-admin/lib/messaging/messaging-api";
+import { TPaginateOptions } from "../../types/paginate";
+// import { Message, getmessaging } from "firebase-admin/lib/messaging/messaging-api";
 
-const registerUserDevice = async (
-	userId: string,
-	role: TRoles,
-	token: string
-) => {
-	const user = await GetUserByIdAndRole(userId, role);
+const createNotification = async (payload: INotification) => {
+    const notification = await Notification.create(payload);
+    return notification;
+}
 
-	console.log("Logged in user", user);
+const getNotifications = async(userId: Types.ObjectId, options: TPaginateOptions) => {
 
-	if (!user) {
-		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-	}
+	options.select = "title description icon createdAt"
 
-	console.log(user);
-
-	// user.fcmTokenDetails.fcmToken = token;
-	await user.save();
-
-	return true;
-};
+    const notifications = await Notification.paginate({userId}, options)
+    return notifications;
+}
 
 const onSignup = async (token: string) => {
 	console.log("Token ", token);
@@ -49,62 +38,63 @@ const onSignup = async (token: string) => {
 	// Send a message to the device corresponding to the provided
 	// registration token.
 	try {
-		const response = await getMessaging().send(message);
+		// const response = await getmessaging().send(message);
 
-		console.log("Successfully sent message:", response);
+		// console.log("Successfully sent message:", response);
 	} catch (error) {
 		console.log("Error sending message:", error);
 	}
 };
 
-const driverAccountVerificaitonNotification = async (driverId: string) => {
-	const driver = await Driver.findById(driverId)
-		.lean()
-		.select("username regionalInformation");
+// const driverAccountVerificaitonNotification = async (driverId: string) => {
+// 	const driver = await Rider.findById(driverId)
+// 		.lean()
+// 		.select("username regionalInformation");
 
-	if (!driver) {
-		throw new ApiError(httpStatus.NOT_FOUND, "Driver not found");
-	}
+// 	if (!driver) {
+// 		throw new ApiError(httpStatus.NOT_FOUND, "Driver not found");
+// 	}
 
-	const admin = await Admin.findOne({ role: "Admin" })
-		.lean()
-		.select("fcmTokenDetails");
+// 	const admin = await Admin.findOne({ role: "Admin" })
+// 		.lean()
+// 		.select("fcmTokenDetails");
 
-	if (!admin) {
-		throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
-	}
+// 	if (!admin) {
+// 		throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+// 	}
 
-	const message: Message = {
-		notification: {
-			// <-- Add this notification object
-			title: "New Driver Account Request",
-			body: "A new driver account request has been made. Please check and verify it.",
-		},
-		// data: {
-		// 	username: `${driver?.username?.firstName} ${driver.username?.lastName}`,
-		// 	regionalInformation: `From ${driver?.regionalInformation?.city}`,
-		// },
-		token: admin.fcmTokenDetails.fcmToken,
-	};
+// 	const message: Message = {
+// 		notification: {
+// 			// <-- Add this notification object
+// 			title: "New Driver Account Request",
+// 			body: "A new driver account request has been made. Please check and verify it.",
+// 		},
+// 		// data: {
+// 		// 	username: `${driver?.username?.firstName} ${driver.username?.lastName}`,
+// 		// 	regionalInformation: `From ${driver?.regionalInformation?.city}`,
+// 		// },
+// 		token: admin.fcmTokenDetails.fcmToken,
+// 	};
 
-	// Send a message to the device corresponding to the provided
-	// registration token.
-	const response = await getMessaging().send(message);
+// 	// Send a message to the device corresponding to the provided
+// 	// registration token.
+// 	const response = await getMessaging().send(message);
 
-	if (!response) {
-		throw new ApiError(
-			httpStatus.INTERNAL_SERVER_ERROR,
-			"Failed to send notification"
-		);
-	}
+// 	if (!response) {
+// 		throw new ApiError(
+// 			httpStatus.INTERNAL_SERVER_ERROR,
+// 			"Failed to send notification"
+// 		);
+// 	}
 
-	return true;
-};
+// 	return true;
+// };
 
 
 
 export const NotificationService = {
 	onSignup,
-	registerUserDevice,
-	driverAccountVerificaitonNotification,
+	// registerUserDevice,
+	// driverAccountVerificaitonNotification,
+	getNotifications
 };
