@@ -19,7 +19,7 @@ const coordinatesValidation = (coordinates: number[]) => {
 	);
 };
 
-const locationScheama = new Schema<TLocation>({
+export const locationScheama = new Schema<TLocation>({
 	name: {
 		type: String,
 	},
@@ -96,9 +96,7 @@ const userSchema = new Schema<TUser>(
 			type: String,
 			required: true,
 		},
-		avatar: {
-			type: String,
-		},
+
 		role: {
 			type: [String],
 			enum: Object.values(USER_ROLES),
@@ -126,7 +124,15 @@ const userSchema = new Schema<TUser>(
 			type: String,
 		},
 		location: {
-			coordinates: [Number],
+			type: {
+				type: String,
+				enum: ["Point"],
+				default: "Point"
+			},
+			coordinates: {
+				type: [Number],
+				default: [0, 0]
+			},
 		},
 		locationName: {
 			type: String,
@@ -146,6 +152,22 @@ const userSchema = new Schema<TUser>(
 		engagedWith: {
 			type: Schema.Types.ObjectId,
 			ref: "User",
+		},
+		rating: {
+			type: Number,
+			default: 0,
+		},
+		totalReviews: {
+			type: Number,
+			default: 0,
+		},
+		languagePreference: {
+			type: String,
+			default: "en",
+		},
+		totalRides: {
+			type: Number,
+			default: 0,
 		},
 		address: {
 			type: String,
@@ -168,7 +190,7 @@ const userSchema = new Schema<TUser>(
 	}
 );
 
-userSchema.index({ location: "2dsphere" });
+userSchema.index({ location: "2dsphere" }, { sparse: true });
 
 
 userSchema.pre("save", async function (next) {

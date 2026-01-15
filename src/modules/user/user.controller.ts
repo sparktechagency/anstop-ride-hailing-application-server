@@ -51,8 +51,69 @@ const getSavedAddress = asyncHandler(async(req, res) => {
     );
 })
 
+const setCurrentLocation = asyncHandler(async(req, res) => {
+    const userId = req.user._id;
+    const payload = req.body;
+
+    await UserServices.setCurrentLocation(userId, payload)
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Current location set successfully",
+            data: null,
+        }),
+    );
+})
+
+const uploadFiles = asyncHandler(async(req, res) => {
+    const {urls} = req.body;
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Files uploaded successfully",
+            data: urls,
+        }),
+    );
+    
+})
+
+const updateProfile = asyncHandler(async(req, res) => {
+    const userId = req.user._id;
+    const payload = req.body;
+
+    await UserServices.updateProfile(userId, payload)
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Profile updated successfully",
+            data: null,
+        }),
+    );
+})
+
+const getMyProfile = asyncHandler(async(req, res) => {
+    const userId = req.user._id;
+
+    const profile = await UserServices.getMyProfile(userId)
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Profile retrieved successfully",
+            data: profile,
+        }),
+    );
+})
+
 export const UserControllers = {
     setFcmToken,
     saveAddress,
-    getSavedAddress
+    getSavedAddress,
+    setCurrentLocation,
+    uploadFiles,
+    updateProfile,
+    getMyProfile
 }

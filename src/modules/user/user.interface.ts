@@ -55,7 +55,6 @@ export type TUser = {
 	email: string;
 	phoneNumber: string;
 	password: string;
-	avatar: string;
 	role: TRole[];
 	status: TStatus;
 	homeLocation: TLocation;
@@ -82,6 +81,10 @@ export type TUser = {
 	isEmailVerified: boolean;
 	isOnboarded: boolean;
 	fcmToken: string;
+	languagePreference: string;
+	rating: number;
+	totalReviews: number;
+	totalRides: number;
 	isDeleted: boolean;
 	createdAt: Date;
 	updatedAt: Date;
