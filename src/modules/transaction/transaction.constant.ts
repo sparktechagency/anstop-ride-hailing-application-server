@@ -1,0 +1,13 @@
+export const TRANSACTION_STATUS = {
+    COMPLETED: "COMPLETED",
+    FAILED: "FAILED",
+} as const;
+
+export const  TRANSACTION_TYPE = {
+    DEPOSIT: "DEPOSIT",
+    WITHDRAWAL: "WITHDRAWAL",
+    RIDE_FARE: "RIDE_FARE",
+    RIDE_TIP: "RIDE_TIP",
+    RIDE_CANCELATION: "RIDE_CANCELATION",
+    
+} as const;

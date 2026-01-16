@@ -1,8 +1,9 @@
 import { model, Schema } from "mongoose";
 import { ITransactionModel, TTransaction } from "./transaction.interface";
 import paginate from "../../utils/paginate";
+import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "./transaction.constant";
 
-const transactionSchema = new Schema<TTransaction>(
+const transactionSchema = new Schema<TTransaction, ITransactionModel>(
     {
         userId: {
             type: Schema.Types.ObjectId,
@@ -17,7 +18,11 @@ const transactionSchema = new Schema<TTransaction>(
             type: String,
             required: true
         },
-        accountName: {
+        accountHolderName: {
+            type: String,
+            required: true
+        },
+        accountType: {
             type: String,
             required: true
         },
@@ -27,10 +32,12 @@ const transactionSchema = new Schema<TTransaction>(
         },
         type: {
             type: String,
+            enum: Object.values(TRANSACTION_TYPE),
             required: true
         },
         status: {
             type: String,
+            enum: Object.values(TRANSACTION_STATUS),
             required: true
         }
     },

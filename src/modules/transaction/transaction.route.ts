@@ -8,7 +8,8 @@ import { TransactionController } from "./transaction.controller";
 const router = Router();
 
 
-router.get("/", auth("COMMON"), requestValidator(TransactionValidation.getAllTransations), TransactionController.getAllTransations)
+router.get("/", auth("COMMON"), requestValidator(TransactionValidation.getAllTransationsSchema), TransactionController.getAllTransations)
 
+router.post("/", auth("COMMON"), requestValidator(TransactionValidation.createTransactionSchema), TransactionController.createTransaction)
 
 export const TransactionRoutes = router;

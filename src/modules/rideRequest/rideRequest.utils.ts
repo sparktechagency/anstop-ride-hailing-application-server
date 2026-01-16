@@ -1,160 +1,159 @@
 // notifyNearestDrivers.ts
 import { Server } from "socket.io";
-import { Driver } from "../driver/driver.model";
 import { RideRequest } from "./rideRequest.model";
-import { driverSocketMap, userSocketMap } from "../../socket/utils/socketStore";
+import { userSocketMap } from "../../socket/utils/socketStore";
 import { RideRequestStatus } from "./rideRequest.interface";
 
-export const notifyNearestDrivers = async (
-	userLocation: { coordinates: [number, number] },
-	requestId: string,
-	userId: string
-) => {
-	console.log(io);
-	const drivers = await Driver.find({
-		isOnline: true,
-		isEngaged: false,
-		location: {
-			$near: {
-				$geometry: {
-					type: "Point",
-					coordinates: userLocation.coordinates,
-				},
-				$maxDistance: 500, // 500m radius
-			},
-		},
-	}).lean();
+// export const notifyNearestDrivers = async (
+// 	userLocation: { coordinates: [number, number] },
+// 	requestId: string,
+// 	userId: string
+// ) => {
+// 	console.log(io);
+// 	const drivers = await Driver.find({
+// 		isOnline: true,
+// 		isEngaged: false,
+// 		location: {
+// 			$near: {
+// 				$geometry: {
+// 					type: "Point",
+// 					coordinates: userLocation.coordinates,
+// 				},
+// 				$maxDistance: 500, // 500m radius
+// 			},
+// 		},
+// 	}).lean();
 
-	// console.log(drivers);
+// 	// console.log(drivers);
 
-	if (drivers.length === 0) {
-		console.log(userId);
-		io.to(userId).emit("ride:no-available-drivers", {
-			message: "No available drivers found",
-		});
-		console.log("No available drivers found.");
-		return;
-	}
+// 	if (drivers.length === 0) {
+// 		console.log(userId);
+// 		io.to(userId).emit("ride:no-available-drivers", {
+// 			message: "No available drivers found",
+// 		});
+// 		console.log("No available drivers found.");
+// 		return;
+// 	}
 
-	let index = 0;
-	let rideAssigned = false;
+// 	let index = 0;
+// 	let rideAssigned = false;
 
-	const tryNotifyDriver = () => {
-		if (rideAssigned || index >= drivers.length) {
-			if (!rideAssigned) {
-				io.to(userId).emit("ride:no-available-drivers", {
-					message: "No available drivers responded",
-				});
-				console.log("All drivers ignored the request.");
-			}
-			return;
-		}
+// 	const tryNotifyDriver = () => {
+// 		if (rideAssigned || index >= drivers.length) {
+// 			if (!rideAssigned) {
+// 				io.to(userId).emit("ride:no-available-drivers", {
+// 					message: "No available drivers responded",
+// 				});
+// 				console.log("All drivers ignored the request.");
+// 			}
+// 			return;
+// 		}
 
-		const driver = drivers[index];
-		const driverId = driver._id.toString();
-		const rideRoom = `ride:${requestId}`;
-		console.log(`Notifying driver: ${driverId}`);
+// 		const driver = drivers[index];
+// 		const driverId = driver._id.toString();
+// 		const rideRoom = `ride:${requestId}`;
+// 		console.log(`Notifying driver: ${driverId}`);
 
-		io.to(driverId).emit("ride:offer", {
-			requestId,
-			userLocation,
-			expiresIn: 15000,
-		});
+// 		io.to(driverId).emit("ride:offer", {
+// 			requestId,
+// 			userLocation,
+// 			expiresIn: 15000,
+// 		});
 
-		// Get the driver's socket instances
-		const driverSocketIds = driverSocketMap.get(driverId);
+// 		// Get the driver's socket instances
+// 		const driverSocketIds = driverSocketMap.get(driverId);
 
-		if (!driverSocketIds || driverSocketIds.size === 0) {
-			console.log(`Driver ${driverId} not connected`);
-			index++;
-			tryNotifyDriver();
-			return;
-		}
+// 		if (!driverSocketIds || driverSocketIds.size === 0) {
+// 			console.log(`Driver ${driverId} not connected`);
+// 			index++;
+// 			tryNotifyDriver();
+// 			return;
+// 		}
 
-		// Timeout if driver doesn't respond in 15s
-		const timeout = setTimeout(() => {
-			console.log(`Driver ${driverId} did not respond.`);
-			io.to(driverId).emit("ride:timeout", {
-				message: "You missed a ride request",
-			});
-			// Remove listeners from all driver sockets
-			driverSocketIds.forEach((socketId) => {
-				const driverSocket = io.sockets.sockets.get(socketId);
-				if (driverSocket) {
-					driverSocket.off("ride:accepted", onAccept);
-				}
-			});
-			index++;
-			tryNotifyDriver();
-		}, 15000);
+// 		// Timeout if driver doesn't respond in 15s
+// 		const timeout = setTimeout(() => {
+// 			console.log(`Driver ${driverId} did not respond.`);
+// 			io.to(driverId).emit("ride:timeout", {
+// 				message: "You missed a ride request",
+// 			});
+// 			// Remove listeners from all driver sockets
+// 			driverSocketIds.forEach((socketId) => {
+// 				const driverSocket = io.sockets.sockets.get(socketId);
+// 				if (driverSocket) {
+// 					driverSocket.off("ride:accepted", onAccept);
+// 				}
+// 			});
+// 			index++;
+// 			tryNotifyDriver();
+// 		}, 15000);
 
-		// if user cancel the ride during the process then emmit use cancel information to driver and end the whole process
+// 		// if user cancel the ride during the process then emmit use cancel information to driver and end the whole process
 
-		// Temporary listener only for this driver
-		const onAccept = async (data: any) => {
-			if (data.requestId !== requestId || data.driverId !== driverId) {
-				console.log("Error: Invalid accept data");
-				return;
-			}
+// 		// Temporary listener only for this driver
+// 		const onAccept = async (data: any) => {
+// 			if (data.requestId !== requestId || data.driverId !== driverId) {
+// 				console.log("Error: Invalid accept data");
+// 				return;
+// 			}
 
-			const existingRide = await RideRequest.findById(requestId);
-			if (!existingRide || existingRide.driverId) return; // Already accepted
+// 			const existingRide = await RideRequest.findById(requestId);
+// 			if (!existingRide || existingRide.driverId) return; // Already accepted
 
-			clearTimeout(timeout);
-			rideAssigned = true;
-			// Remove listeners from all driver sockets
-			driverSocketIds.forEach((socketId) => {
-				const driverSocket = io.sockets.sockets.get(socketId);
-				if (driverSocket) {
-					driverSocket.off("ride:accepted", onAccept);
-				}
-			});
+// 			clearTimeout(timeout);
+// 			rideAssigned = true;
+// 			// Remove listeners from all driver sockets
+// 			driverSocketIds.forEach((socketId) => {
+// 				const driverSocket = io.sockets.sockets.get(socketId);
+// 				if (driverSocket) {
+// 					driverSocket.off("ride:accepted", onAccept);
+// 				}
+// 			});
 
-			// Join sockets to the room
-			userSocketMap.get(userId)?.forEach((socketId) => {
-				io.sockets.sockets.get(socketId)?.join(rideRoom);
-			});
-			driverSocketMap.get(driverId)?.forEach((socketId) => {
-				io.sockets.sockets.get(socketId)?.join(rideRoom);
-			});
+// 			// Join sockets to the room
+// 			userSocketMap.get(userId)?.forEach((socketId) => {
+// 				io.sockets.sockets.get(socketId)?.join(rideRoom);
+// 			});
+// 			driverSocketMap.get(driverId)?.forEach((socketId) => {
+// 				io.sockets.sockets.get(socketId)?.join(rideRoom);
+// 			});
 
-			// Update DB
-			await Driver.findByIdAndUpdate(driverId, {
-				isEngaged: true,
-				engagedWith: rideRoom,
-			});
-			await RideRequest.findByIdAndUpdate(requestId, {
-				driverId,
-				status: RideRequestStatus.ACCEPTED,
-			});
+// 			// Update DB
+// 			await Driver.findByIdAndUpdate(driverId, {
+// 				isEngaged: true,
+// 				engagedWith: rideRoom,
+// 			});
+// 			await RideRequest.findByIdAndUpdate(requestId, {
+// 				driverId,
+// 				status: RideRequestStatus.ACCEPTED,
+// 			});
 
-			// Notify both parties
-			io.to(userId).emit("ride:driver-assigned", {
-				driverId,
-			});
-			io.to(rideRoom).emit("ride:connected", {
-				driverId,
-				userId,
-				roomId: rideRoom,
-				message: "Ride started",
-			});
-		};
+// 			// Notify both parties
+// 			io.to(userId).emit("ride:driver-assigned", {
+// 				driverId,
+// 			});
+// 			io.to(rideRoom).emit("ride:connected", {
+// 				driverId,
+// 				userId,
+// 				roomId: rideRoom,
+// 				message: "Ride started",
+// 			});
+// 		};
 
-		// get driver socket from map
+// 		// get driver socket from map
 
-		driverSocketIds.forEach((socketId) => {
-			const driverSocket = io.sockets.sockets.get(socketId);
-			if (driverSocket) {
-				console.log(
-					`Registering ride:accepted listener for driver ${driverId} on socket ${socketId}`
-				);
-				driverSocket.on("ride:accepted", onAccept);
-			}
-		});
-	};
+// 		driverSocketIds.forEach((socketId) => {
+// 			const driverSocket = io.sockets.sockets.get(socketId);
+// 			if (driverSocket) {
+// 				console.log(
+// 					`Registering ride:accepted listener for driver ${driverId} on socket ${socketId}`
+// 				);
+// 				driverSocket.on("ride:accepted", onAccept);
+// 			}
+// 		});
+// 	};
 
-	tryNotifyDriver();
-};
+// 	tryNotifyDriver();
+// };
 
 
 // notifyNearestDrivers.ts

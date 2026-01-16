@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "./transaction.constant";
 
-const getAllTransations = z.object({
+const getAllTransationsSchema = z.object({
     query: z
         .object({
             page: z.coerce
@@ -32,6 +33,36 @@ const getAllTransations = z.object({
         .strict(),
 });
 
+const createTransactionSchema = z.object({
+    body: z.object({
+        transactionId: z.string({
+            required_error: "Transaction ID is required",
+        }),
+        amount: z.number({
+            required_error: "Amount is required",
+        }),
+        accountNumber: z.string({
+            required_error: "Account number is required",
+        }),
+        accountHolderName: z.string({
+            required_error: "Account holder name is required",
+        }),
+        accountType: z.string({
+            required_error: "Account type is required",
+        }),
+        bankName: z.string({
+            required_error: "Bank name is required",
+        }),
+        type: z.enum([TRANSACTION_TYPE.DEPOSIT, TRANSACTION_TYPE.WITHDRAWAL, TRANSACTION_TYPE.RIDE_FARE, TRANSACTION_TYPE.RIDE_TIP, TRANSACTION_TYPE.RIDE_CANCELATION], {
+            required_error: "Type is required",
+        }),
+        status: z.enum([TRANSACTION_STATUS.COMPLETED, TRANSACTION_STATUS.FAILED], {
+            required_error: "Status is required",
+        }),
+    })
+})
+
 export const TransactionValidation = {
-    getAllTransations
+    getAllTransationsSchema,
+    createTransactionSchema
 } 

@@ -26,6 +26,24 @@ const getAllTransations = asyncHandler(async(req, res) => {
     
 })
 
+
+const createTransaction = asyncHandler(async(req, res) => {
+
+    const userId = req.user._id;
+    const payload = req.validatedData.body;
+
+
+    const result = await TransactionService.createTransaction(userId, payload);
+
+    res.status(httpStatus.OK).json(new ApiResponse({
+        statusCode: httpStatus.OK,
+        message: "Transaction successfully created",
+        data: result
+    })) 
+    
+})
+
 export const TransactionController = {
-    getAllTransations
+    getAllTransations,
+    createTransaction
 }
