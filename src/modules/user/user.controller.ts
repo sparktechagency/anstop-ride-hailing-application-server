@@ -108,6 +108,20 @@ const getMyProfile = asyncHandler(async(req, res) => {
     );
 })
 
+const getBalance = asyncHandler(async(req, res) => {
+    const userId = req.user._id;
+
+    const balance = await UserServices.getBalance(userId)
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Balance retrieved successfully",
+            data: balance,
+        }),
+    );
+})
+
 export const UserControllers = {
     setFcmToken,
     saveAddress,
@@ -115,5 +129,6 @@ export const UserControllers = {
     setCurrentLocation,
     uploadFiles,
     updateProfile,
-    getMyProfile
+    getMyProfile,
+    getBalance
 }

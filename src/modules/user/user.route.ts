@@ -27,4 +27,6 @@ router.get("/my-profile", auth("COMMON"), UserControllers.getMyProfile)
 
 router.patch("/profile", auth("COMMON"), requestValidator(UserValidation.updateProfileSchema), UserControllers.updateProfile)
 
+router.get("/balance", auth("COMMON"), UserControllers.getBalance)
+
 export const UserRoutes = router;

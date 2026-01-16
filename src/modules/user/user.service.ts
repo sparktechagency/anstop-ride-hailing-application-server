@@ -106,13 +106,24 @@ const updateProfile = async (userId: Types.ObjectId, payload: TUpdateProfileDto)
 	return true;
 }
 
+const getBalance = async(userId: Types.ObjectId) => {
+    const user = await User.findById(userId).lean().select("balance");
+    if (!user) {
+        throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    }
+    return user;
+}
+
+
+
 export const UserServices = {
 	setFcmToken,
 	saveAddress,
 	getSavedAddress,
 	setCurrentLocation,
 	updateProfile,
-	getMyProfile
+	getMyProfile,
+	getBalance
 }
 
 

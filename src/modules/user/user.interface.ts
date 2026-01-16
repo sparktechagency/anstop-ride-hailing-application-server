@@ -85,6 +85,7 @@ export type TUser = {
 	rating: number;
 	totalReviews: number;
 	totalRides: number;
+	balance: number;
 	isDeleted: boolean;
 	createdAt: Date;
 	updatedAt: Date;
