@@ -1,0 +1,51 @@
+import { Types } from "mongoose";
+import { TCreateWithdrawalRequestDto } from "./withdrawalRequest.dto";
+import { WithdrawalRequest } from "./withdrawalRequest.model";
+import { WITHDRAWAL_STATUS } from "./withdrawalRequest.constant";
+import { TPaginateOptions } from "../../types/paginate";
+import { User } from "../user/user.model";
+
+const createWithdrawalRequest = async (userId: Types.ObjectId, payload: TCreateWithdrawalRequestDto) => {
+
+    const existingRequest = await WithdrawalRequest.findOne({
+        userId: userId,
+        status: WITHDRAWAL_STATUS.PENDING
+    })
+
+    if(existingRequest){
+        throw new Error("You have a pending withdrawal request")
+    }
+
+    const user = await User.findById(userId).select("balance");
+
+    if(!user){
+        throw new Error("User not found")
+    }
+
+    if(user.balance < payload.amount){
+        throw new Error("Insufficient balance")
+    }
+
+    const withdrawalRequest = await WithdrawalRequest.create({
+        userId,
+        ...payload
+    })
+
+    return withdrawalRequest
+}
+
+const getAllWithdrawalRequest = async (filter: any, options: TPaginateOptions) => {
+
+    options.select = "userId amount status bankName accountNumber accountType accountHolderName createdAt"
+    options.populate = {
+        path: "userId",
+        select: "name email profilePicture role"
+    }
+    const withdrawalRequest = await WithdrawalRequest.paginate(filter, options)
+    return withdrawalRequest
+}
+
+export const withdrawalRequestService = {
+    createWithdrawalRequest,
+    getAllWithdrawalRequest
+}

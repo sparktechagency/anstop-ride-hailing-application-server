@@ -1,0 +1,5 @@
+export const WITHDRAWAL_STATUS = {
+    PENDING: "PENDING",
+    REJECTED: "REJECTED",
+    COMPLETED: "COMPLETED",
+} as const;
