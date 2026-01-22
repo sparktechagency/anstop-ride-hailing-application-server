@@ -112,9 +112,14 @@ const ChangePasswordSchema = z.object({
 		newPassword: z
 			.string({ required_error: "New Password is required" })
 			.min(6, { message: "New Password must be at least 6 characters long" }),
+		confirmPassword: z.string().min(6, {message: "Confirm password must be at least 6 character long"})
+	})
+	// confirm password must be same as new password
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		message: "Confirm password must be same as new password",
 	})
 });
-
+	
 
 export const AuthValidation = {
 	SignUpScheam,

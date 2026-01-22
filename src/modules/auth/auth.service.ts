@@ -10,79 +10,6 @@ import { OTP_TYPE } from "../otpToken/otpToken.constant";
 import { Types } from "mongoose";
 import { OtpInternalApi } from "../otpToken/otpToken.internalApi";
 
-// const registerUserIntoDB = async (
-// 	userData: UserRegistration
-// ): Promise<boolean> => {
-// 	// checking if the user is exist
-// 	const user = await User.findOne({
-// 		phoneNumber: userData?.phoneNumber,
-// 	});
-
-// 	if (user) {
-// 		await sendOtpToUser(user.phoneNumber);
-// 		return true;
-// 	} else {
-// 		// if user is not exist then create new user
-// 		const newUser = new User({
-// 			phoneNumber: userData?.phoneNumber,
-// 		});
-// 		await newUser.save();
-// 		await sendOtpToUser(newUser.phoneNumber);
-// 		return true;
-// 	}
-// };
-
-// const verifyOTP = async (
-// 	email: string,
-// 	otp: string
-// ): Promise<IPasswordOperationResponse> => {
-// 	// Find the user by email
-
-// 	const user = await User.findOne({ email });
-
-// 	if (!user) {
-// 		throw new ApiError(
-// 			httpStatus.NOT_FOUND,
-// 			"User not found with this email"
-// 		);
-// 	}
-
-// 	// Find the OTP token for the user
-// 	const otpToken = await OTPToken.findOne({ userId: user._id });
-
-// 	if (!otpToken) {
-// 		throw new ApiError(httpStatus.NOT_FOUND, "Invalid or expired OTP");
-// 	}
-
-// 	// Check if the OTP is already verified
-
-// 	if (otpToken.verified) {
-// 		throw new ApiError(
-// 			httpStatus.UNAUTHORIZED,
-// 			"OTP has already been used"
-// 		);
-// 	}
-
-// 	// Check if the OTP is expired
-// 	if (otpToken.expiresAt < new Date()) {
-// 		throw new ApiError(httpStatus.UNAUTHORIZED, "OTP has expired");
-// 	}
-
-// 	// Check if the OTP matches
-
-// 	const isOTPValid = await bcrypt.compare(otp, otpToken.otp);
-
-// 	if (!isOTPValid) {
-// 		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid OTP");
-// 	}
-
-// 	// Mark the OTP as verified
-
-// 	otpToken.verified = true;
-// 	await otpToken.save();
-
-// 	return { message: "OTP verified successfully" };
-// };
 
 const SignUpUser = async (userData: TUserSignUpDTO): Promise<void> => {
 	const { email } = userData;
@@ -378,7 +305,7 @@ const changePassword = async (
 		user.password
 	);
 	if (!isPasswordValid) {
-		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials.");
+		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid password.");
 	}
 
 	user.password = newPassword;
