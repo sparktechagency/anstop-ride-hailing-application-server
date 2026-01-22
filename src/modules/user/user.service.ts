@@ -68,13 +68,14 @@ const setCurrentLocation = async (userId: Types.ObjectId, payload: TSaveAddressD
 	if (!user) {
 		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 	}
+	console.log("user location", user.location, payload);
 	user.location.coordinates = [payload.longitude, payload.latitude];
 	user.locationName = payload.name;
 	await user.save();
 }
 
 const getMyProfile = async (userId: Types.ObjectId) => {
-	const user = await User.findById(userId).select("name email profilePicture phoneNumber address")
+	const user = await User.findById(userId).select("name email profilePicture phoneNumber address location locationName")
 	if (!user) {
 		throw new ApiError(httpStatus.NOT_FOUND, "User not found")
 	}

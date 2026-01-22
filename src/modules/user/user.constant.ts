@@ -9,7 +9,7 @@ export const USER_ROLES = {
 export const RoleRights = new Map<string, string[]>([
 	[USER_ROLES.RIDER, ["COMMON", "RIDER"]],
 	[USER_ROLES.DRIVER, ["COMMON", "DRIVER"]],
-	[USER_ROLES.ADMIN, ["Common", "Admin"]],
+	[USER_ROLES.ADMIN, ["COMMON", "ADMIN"]],
 ]);
 
 // DEFINE CONSTANT FOR STATUS

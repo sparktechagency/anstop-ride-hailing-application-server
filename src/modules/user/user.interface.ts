@@ -76,7 +76,7 @@ export type TUser = {
 
 	isOnline: boolean;
 	isEngaged: boolean;
-	engagedWith: Types.ObjectId;
+	engagedRideId: Types.ObjectId | null;
 	address: string;
 	isEmailVerified: boolean;
 	isOnboarded: boolean;

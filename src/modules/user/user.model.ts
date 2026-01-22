@@ -127,11 +127,12 @@ const userSchema = new Schema<TUser>(
 			type: {
 				type: String,
 				enum: ["Point"],
-				default: "Point"
+				default: "Point",
 			},
 			coordinates: {
 				type: [Number],
-				default: [0, 0]
+				// required: true,
+				default: [0, 0],
 			},
 		},
 		locationName: {
@@ -149,15 +150,19 @@ const userSchema = new Schema<TUser>(
 			type: Boolean,
 			default: false,
 		},
-		engagedWith: {
+		engagedRideId: {
 			type: Schema.Types.ObjectId,
-			ref: "User",
+			ref: "RideRequest",
 		},
 		rating: {
 			type: Number,
 			default: 0,
 		},
 		totalReviews: {
+			type: Number,
+			default: 0,
+		},
+		balance: {
 			type: Number,
 			default: 0,
 		},
@@ -190,7 +195,7 @@ const userSchema = new Schema<TUser>(
 	}
 );
 
-userSchema.index({ location: "2dsphere" }, { sparse: true });
+userSchema.index({ location: "2dsphere" });
 
 
 userSchema.pre("save", async function (next) {
