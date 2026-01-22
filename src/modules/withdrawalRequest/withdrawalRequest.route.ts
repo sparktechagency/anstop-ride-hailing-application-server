@@ -14,5 +14,6 @@ router.post("/", auth(USER_ROLES.DRIVER), requestValidator(withdrawalRequestVali
 
 router.get("/my-requests", auth(USER_ROLES.DRIVER), requestValidator(withdrawalRequestValidation.getAllSchema), WithdrawalRequestController.getMyWithdrawalRequest)
 
+router.post("/reject", auth(USER_ROLES.ADMIN), requestValidator(withdrawalRequestValidation.rejectSchema), WithdrawalRequestController.rejectWithdrawRequest)
 
 export const WithdrawalRequestRoutes = router;

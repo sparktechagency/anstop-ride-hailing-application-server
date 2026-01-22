@@ -56,9 +56,21 @@ const getMyWithdrawalRequest = asyncHandler(async(req, res) => {
     })
 })
 
+const rejectWithdrawRequest = asyncHandler(async(req, res) => {
+    const payload = req.body;
+
+    const result = await withdrawalRequestService.rejectWithdrawRequest(payload)
+    res.status(200).json({
+        success: true,
+        message: "Withdrawal requests retrieved successfully",
+        data: result
+    })
+})
+
 
 export const WithdrawalRequestController = {
     createWithdrawalRequest,
     getAllWithdrawalRequest,
-    getMyWithdrawalRequest
+    getMyWithdrawalRequest,
+    rejectWithdrawRequest
 }

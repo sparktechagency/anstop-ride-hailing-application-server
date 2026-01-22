@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { TCreateWithdrawalRequestDto } from "./withdrawalRequest.dto";
+import { TCreateWithdrawalRequestDto, TRejectWithdrawalRequestDto } from "./withdrawalRequest.dto";
 import { WithdrawalRequest } from "./withdrawalRequest.model";
 import { WITHDRAWAL_STATUS } from "./withdrawalRequest.constant";
 import { TPaginateOptions } from "../../types/paginate";
@@ -12,17 +12,17 @@ const createWithdrawalRequest = async (userId: Types.ObjectId, payload: TCreateW
         status: WITHDRAWAL_STATUS.PENDING
     })
 
-    if(existingRequest){
+    if (existingRequest) {
         throw new Error("You have a pending withdrawal request")
     }
 
     const user = await User.findById(userId).select("balance");
 
-    if(!user){
+    if (!user) {
         throw new Error("User not found")
     }
 
-    if(user.balance < payload.amount){
+    if (user.balance < payload.amount) {
         throw new Error("Insufficient balance")
     }
 
@@ -45,7 +45,26 @@ const getAllWithdrawalRequest = async (filter: any, options: TPaginateOptions) =
     return withdrawalRequest
 }
 
+const rejectWithdrawRequest = async (payload: TRejectWithdrawalRequestDto) => {
+
+    const withdrawalRequest = await WithdrawalRequest.findOne({
+        _id: payload.requestId,
+        status: WITHDRAWAL_STATUS.PENDING
+    })
+
+    if (!withdrawalRequest) {
+        throw new Error("Withdrawal request not found")
+    }
+
+    withdrawalRequest.status = WITHDRAWAL_STATUS.REJECTED
+    withdrawalRequest.rejectReason = payload.rejectReason
+    await withdrawalRequest.save()
+
+    return withdrawalRequest
+}
+
 export const withdrawalRequestService = {
     createWithdrawalRequest,
-    getAllWithdrawalRequest
+    getAllWithdrawalRequest,
+    rejectWithdrawRequest
 }

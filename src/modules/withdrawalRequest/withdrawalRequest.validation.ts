@@ -4,10 +4,10 @@ const createSchema = z.object({
     body: z.object({
         amount: z.number().min(100),
         bankName: z.string().min(3),
-        routingNumber: z.string().min(3),
         accountNumber: z.string().min(3),
-        accountHolderName: z.string().min(3),
-        accountType: z.string().min(3),
+        routingNumber: z.string().optional(),
+        accountHolderName: z.string().optional(),
+        accountType: z.string().optional(),
     })
 }) 
 
@@ -43,7 +43,15 @@ const getAllSchema = z.object({
         .strict()
 });
 
+const rejectSchema = z.object({
+    body: z.object({
+        rejectReason: z.string().min(3),
+        requestId: z.string().min(3),
+    })
+})
+
 export const withdrawalRequestValidation = {
     createSchema,
-    getAllSchema
+    getAllSchema,
+    rejectSchema
 }

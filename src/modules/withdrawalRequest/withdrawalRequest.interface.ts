@@ -13,6 +13,7 @@ export interface IWithdrawalRequest {
     accountNumber: string;
     accountHolderName: string;
     accountType: string;
+    rejectReason?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }

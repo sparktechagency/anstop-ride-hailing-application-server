@@ -42,13 +42,15 @@ const WithdrawalRequestSchema = new Schema<
 		accountType: {
 			type: String,
 			trim: true,
-			required: true,
 		},
 		accountHolderName:{
 			type: String,
 			trim: true,
-			required: true,
-		}
+		},
+		 rejectReason: {
+			type: String,
+			trim: true,
+		 }
 	},
 	{
 		timestamps: true,
