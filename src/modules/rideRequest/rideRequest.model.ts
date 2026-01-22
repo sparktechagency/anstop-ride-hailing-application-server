@@ -1,72 +1,37 @@
-import { model, Schema } from "mongoose";
-import {
-	TRideRequest,
-	RIDEREQUESTSTATUS,
-	SERVICETYPES,
-} from "./rideRequest.interface";
-import { TAddress } from "../../shared/shared.interface";
+import { Schema } from "mongoose";
+import { TRideRequest } from "./rideRequest.interface";
+import { RideConstants } from "./rideRequest.constant";
+import { locationScheama } from "../user/user.model";
+import { model } from "mongoose";
 
-const addressSchema = new Schema<TAddress>(
-	{
-		addressLabel: {
-			type: String,
-			required: true,
-		},
-		coordinates: {
-			type: [Number],
-			required: true,
-		},
+const cancellationInfoSchema = new Schema({
+	cancelledBy: {
+		type: String,
+		enum: Object.values(RideConstants.CANCELLED_BY),
+		required: true
 	},
-	{
-		_id: false,
-	}
-);
-
-const cancellationReasonSchema = new Schema(
-	{
-		type: {
-			type: String,
-			enum: ["USER_CANCELED", "DRIVER_CANCELED"],
-			required: true,
-		},
-		reason: {
-			type: String,
-			required: true,
-		},
+	reason: {
+		type: String,
+		required: true
 	},
-	{
-		_id: false,
+	cancelledAt: {
+		type: Date,
+		default: Date.now
+	},
+	refundAmount: {
+		type: Number,
+	},
+	refundStatus: {
+		type: String,
+		enum: Object.values(RideConstants.REFUND_STATUS),
 	}
-);
-
-const pricingInfoSchema = new Schema({
-	recommendedFare: {
-				type: Number,
-				required: true,
-			},
-			minimumFare: {
-				type: Number,
-				required: true,
-			},
-			fare: {
-				type: Number,
-				required: true,
-			},
-			operationFee: {
-				type: Number,
-				required: true,
-			},
-			totalFare: {
-				type: Number,
-				required: true,
-			},
-}, {
-	_id: false
 })
+
+
 
 const rideRequestSchema = new Schema<TRideRequest>(
 	{
-		userId: {
+		riderId: {
 			type: Schema.Types.ObjectId,
 			ref: "User",
 			required: true,
@@ -75,48 +40,41 @@ const rideRequestSchema = new Schema<TRideRequest>(
 			type: Schema.Types.ObjectId,
 			ref: "User",
 		},
-		pickupAddress: addressSchema,
-		dropOffAddress: addressSchema,
-		hasSteps: {
-			type: Boolean,
-			default: false,
-		},
-		steps: [addressSchema],
-		serviceType: {
+		pickUp: locationScheama,
+		destination: locationScheama,
+		distance: {
 			type: String,
-			enum: SERVICETYPES,
-			required: true,
+			required: true
 		},
+		baseFare: {
+			type: Number,
+			required: true
+		},
+		finalFare: {
+			type: Number,
+			
+		},
+		note: {
+			type: String,
+			default: ""
+		},
+		rideNeeds: {
+			type: [String],
+			default: []
+		},
+		
 		status: {
 			type: String,
-			enum: RIDEREQUESTSTATUS,
-			default: "PENDING",
+			enum: Object.values(RideConstants.RIDE_STATUS),
+			default: RideConstants.RIDE_STATUS.PENDING,
 		},
-		isCancelled: {
-			type: Boolean,
-			default: false,
+		cancellationInfo: cancellationInfoSchema,
+		paymentMethod: {
+			type: String,
+			enum: Object.values(RideConstants.PAYMENT_METHOD),
+			default: RideConstants.PAYMENT_METHOD.CASH,
 		},
-		cancellationReason: cancellationReasonSchema,
-		isScheduled: {
-			type: Boolean,
-			default: false,
-		},
-		scheduledAt: {
-			type: Date,
-		},
-		pricingInfo: pricingInfoSchema,
-		estimatedDuration: {
-			type: Number,
-			required: true,
-		},
-		estimatedEndTime: {
-			type: Date,
-			required: true,
-		},
-		distance: {
-			type: Number,
-			required: true,
-		}
+		
 	},
 	{
 		timestamps: true,
@@ -125,17 +83,9 @@ const rideRequestSchema = new Schema<TRideRequest>(
 
 // Optional: Add conditional validators using pre-save hook
 rideRequestSchema.pre("save", function (next) {
-	if (this.hasSteps && (!this.steps || this.steps.length === 0)) {
-		return next(new Error("Steps are required if hasSteps is true."));
-	}
-	if (this.isScheduled && !this.scheduledAt) {
+	if (this.status === RideConstants.RIDE_STATUS.CANCELLED && !this.cancellationInfo) {
 		return next(
-			new Error("ScheduledAt is required if isScheduled is true.")
-		);
-	}
-	if (this.isCancelled && !this.cancellationReason) {
-		return next(
-			new Error("Cancellation reason is required if isCancelled is true.")
+			new Error("You must provide cancellation information when the ride is cancelled.")
 		);
 	}
 	next();

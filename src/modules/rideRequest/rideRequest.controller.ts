@@ -13,7 +13,7 @@ const createRideRequest = asyncHandler(async (req, res) => {
     }
 
     const payload = req.body;
-    await RideRequestService.createRideRequest(userId, payload);
+    await RideRequestService.createRideRequest(userId.toString(), payload);
     res.status(httpStatus.CREATED).json(
         new ApiResponse({
             statusCode: httpStatus.CREATED,
@@ -28,7 +28,7 @@ const getAllRideRequests = asyncHandler(async (req, res) => {
     if (!req.user && !userId) {
         throw new ApiError(httpStatus.UNAUTHORIZED, "User not authenticated");
     }
-    const rideRequests = await RideRequestService.getAllRideRequests(userId);
+    const rideRequests = await RideRequestService.getAllRideRequests(userId.toString());
     res.status(httpStatus.OK).json(
         new ApiResponse({
             statusCode: httpStatus.OK,
@@ -52,7 +52,7 @@ const cancelRideRequest = asyncHandler(async (req, res) => {
 
     const payload = req.body;
 
-    await RideRequestService.cancelRideRequest(userId, rideRequestId, payload);
+    await RideRequestService.cancelRideRequest(userId.toString(), rideRequestId, payload);
     res.status(httpStatus.CREATED).json(
         new ApiResponse({
             statusCode: httpStatus.CREATED,

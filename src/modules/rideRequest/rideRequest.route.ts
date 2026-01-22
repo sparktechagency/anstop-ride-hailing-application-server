@@ -1,28 +1,28 @@
 import { Router } from "express";
-import auth from "../../middleware/auth";
-import { RideRequestController } from "./rideRequest.controller";
 import requestValidator from "../../middleware/request-validator";
-import { cancelRideRequestValidationSchema, createRideRequestValidationSchema } from "./rideRequestValidation";
+import { RideRequestValidation } from "./rideRequest.validation";
+import auth from "../../middleware/auth";
+import { USER_ROLES } from "../user/user.constant";
+import { RideRequestController } from "./rideRequest.controller";
 
 const route = Router();
 
 route.post(
 	"/create-ride-request",
-	requestValidator(createRideRequestValidationSchema),
-	auth("Rider"),
+	requestValidator(RideRequestValidation.createSchema),
+	auth(USER_ROLES.RIDER),
 	RideRequestController.createRideRequest
 );
 
 route.get(
 	"/get-all-ride-requests",
-	auth("Rider"),
+	auth(USER_ROLES.RIDER),
 	RideRequestController.getAllRideRequests
 );
 
 route.patch(
 	"/cancel-ride-request/:rideRequestId",
-	requestValidator(cancelRideRequestValidationSchema),
-	auth("Rider"),
+	auth(USER_ROLES.RIDER),
 	RideRequestController.cancelRideRequest
 );
 

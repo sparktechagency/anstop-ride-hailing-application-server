@@ -1,69 +1,48 @@
 import { Types } from "mongoose";
 import { TAddress } from "../../shared/shared.interface";
+import { RideConstants } from "./rideRequest.constant";
 
-export const RideRequestStatus = {
-	PENDING: "PENDING",
-	ACCEPTED: "ACCEPTED",
-	ONGOING: "ONGOING",
-	DRIVER_CANCELED: "DRIVER_CANCELED",
-	USER_CANCELED: "USER_CANCELED",
-	COMPLETED: "COMPLETED",
-} as const;
 
-type TRideRequestStatus =
-	(typeof RideRequestStatus)[keyof typeof RideRequestStatus];
+type TRideNeeds = typeof RideConstants.RIDE_NEEDS[keyof typeof RideConstants.RIDE_NEEDS];
 
-export const RIDEREQUESTSTATUS = [
-	RideRequestStatus.PENDING,
-	RideRequestStatus.ACCEPTED,
-	RideRequestStatus.ONGOING,
-	RideRequestStatus.DRIVER_CANCELED,
-	RideRequestStatus.USER_CANCELED,
-	RideRequestStatus.COMPLETED,
-] as const;
+export type TRideStatus = typeof RideConstants.RIDE_STATUS[keyof typeof RideConstants.RIDE_STATUS];
 
-export const ServiceType = {
-	RYDR_BASIC: "RYDR_BASIC",
-	RYDR_Female: "RYDR_Female",
-	RYDR_Family: "RYDR_Family",
-} as const;
+type TPaymentMethod = typeof RideConstants.PAYMENT_METHOD[keyof typeof RideConstants.PAYMENT_METHOD];
 
-export type TServiceType = (typeof ServiceType)[keyof typeof ServiceType];
+type TCancelledBy = typeof RideConstants.CANCELLED_BY[keyof typeof RideConstants.CANCELLED_BY];
 
-export const SERVICETYPES = [
-	ServiceType.RYDR_BASIC,
-	ServiceType.RYDR_Female,
-	ServiceType.RYDR_Family,
-] as const;
+type TRefundStatus = typeof RideConstants.REFUND_STATUS[keyof typeof RideConstants.REFUND_STATUS];
 
-interface TPricingInfo {
-	recommendedFare: number;
-	minimumFare: number;
-	fare: number;
-	operationFee: number;
-	totalFare: number;
+type TCancellationInfo = {
+	cancelledBy: TCancelledBy;
+	reason: string;
+	cancelledAt: Date;
+	refundAmount?: number;
+	refundStatus?: TRefundStatus;
 }
+
+
+// interface TPricingInfo {
+// 	recommendedFare: number;
+// 	minimumFare: number;
+// 	fare: number;
+// 	operationFee: number;
+// 	totalFare: number;
+// }
 export interface TRideRequest {
 	_id?: Types.ObjectId;
-	userId: Types.ObjectId;
+	riderId: Types.ObjectId;
 	driverId?: Types.ObjectId;
-	pickupAddress: TAddress;
-	dropOffAddress: TAddress;
-	hasSteps: boolean;
-	steps?: TAddress[];
-	isScheduled: boolean;
-	scheduledAt?: Date;
-	serviceType: TServiceType;
-	pricingInfo: TPricingInfo;
-	status: TRideRequestStatus;
-	isCancelled: boolean;
-	cancellationReason?: {
-		type: "USER_CANCELED" | "DRIVER_CANCELED";
-		reason: string;
-	};
-	estimatedDuration: number;
-	estimatedEndTime: Date;
-	distance: number; // in km
+	pickUp: TAddress;
+	destination: TAddress;
+	distance: string;
+	baseFare: number;
+	finalFare: number;
+	note?: string;
+	rideNeeds?: TRideNeeds[];
+	status: TRideStatus;
+	paymentMethod: TPaymentMethod;
+	cancellationInfo?: TCancellationInfo;
 	createdAt: Date;
 	updatedAt: Date;
 }
