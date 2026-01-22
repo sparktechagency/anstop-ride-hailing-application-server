@@ -1,10 +1,10 @@
-import mongoose, { Types } from "mongoose";
+
 import ApiError from "../../utils/ApiError";
 import { User } from "../user/user.model";
-import { Driver } from "./driver.model";
 import httpStatus from "http-status";
 import { USER_ROLES } from "../user/user.constant";
 import { TOnboardDriverDto } from "./driver.dto";
+import { Types } from "mongoose";
 
 const onboardDriver = async (
 	userId: Types.ObjectId,
@@ -12,7 +12,7 @@ const onboardDriver = async (
 ): Promise<void> => {
 	const {
 		nid,
-		driverLicense,
+		drivingLicense,
 		carInformation,
 		profilePicture,
 		dateOfBirth,
@@ -20,7 +20,7 @@ const onboardDriver = async (
 		gender,
 	} = payload;
 
-	const user = await User.findById(userId).select("_id isOnboarded");
+	const user = await User.findById(userId).select("_id isOnboarded role");
 
 	if (!user) {
 		throw new ApiError(httpStatus.NOT_FOUND, "Driver not found");
@@ -48,7 +48,7 @@ const onboardDriver = async (
 		user.role.push(USER_ROLES.DRIVER)
 	}
 	user.nid = nid;
-	user.driverLicense = driverLicense;
+	user.drivingLicense = drivingLicense;
 	user.carInformation = carInformation;
 	user.profilePicture = profilePicture;
 	user.dateOfBirth = dateOfBirth;
@@ -60,12 +60,12 @@ const onboardDriver = async (
 };
 
 
-const checkOnboardingStatus = async (userId: Types.ObjectId): Promise<boolean> => {
+const checkOnboardingStatus = async (userId: Types.ObjectId) => {
 	const user = await User.findById(userId).select("_id isOnboarded");
 	if (!user) {
 		throw new ApiError(httpStatus.NOT_FOUND, "Driver not found");
 	}
-	return user?.isOnboarded ?? false;
+	return user
 };
 
 export const DriverService = {

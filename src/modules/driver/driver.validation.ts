@@ -56,7 +56,7 @@ const nidAndDriverLicenseValidationSchema = z.object({
 const OnboardingSchema = z.object({
 	body: z.object({
 		nid: nidAndDriverLicenseValidationSchema,
-		driverLicense: nidAndDriverLicenseValidationSchema,
+		drivingLicense: nidAndDriverLicenseValidationSchema,
 		carInformation: carInformationValidationSchema,
 		profilePicture: z.string().url("Profile picture must be a valid URL"),	
 		dateOfBirth: z.coerce.date(),

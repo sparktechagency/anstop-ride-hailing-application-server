@@ -10,7 +10,7 @@ const router = Router();
 // onboard user route
 router.post(
 	"/onboard",
-	auth("Driver"),
+	auth("COMMON"),
 	requestValidator(DriverValidation.OnboardingSchema),
 	DriverControllers.onboardDriver,
 );
