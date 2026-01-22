@@ -5,9 +5,11 @@ import {
 	TLocation,
 	TKYCDocument,
 	TCarInformation,
+	IUserModel,
 } from "./user.interface";
 import { GENDER, USER_ROLES, USER_STATUS } from "./user.constant";
 import bcrypt from "bcrypt";
+import paginate from "../../utils/paginate";
 
 const coordinatesValidation = (coordinates: number[]) => {
 	return (
@@ -78,7 +80,7 @@ const carInformationSchema = new Schema<TCarInformation>({
 	},
 });
 
-const userSchema = new Schema<TUser>(
+const userSchema = new Schema<TUser, IUserModel>(
 	{
 		name: {
 			type: String,
@@ -215,4 +217,4 @@ userSchema.pre("save", async function (next) {
 	}
 });
 
-export const User = model<TUser>("User", userSchema);
+export const User = model<TUser, IUserModel>("User", userSchema);

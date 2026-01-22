@@ -1,5 +1,6 @@
-import { Types } from "mongoose";
+import { Model, Types } from "mongoose";
 import { GENDER, USER_ROLES, USER_STATUS } from "./user.constant";
+import { TPaginateOptions, TPaginateResult } from "../../types/paginate";
 
 // ROLE TYPE
 
@@ -91,7 +92,10 @@ export type TUser = {
 	updatedAt: Date;
 };
 
-export interface IUserModel {
-	// validate password using bcrypt
-	validatePassword(password: string): Promise<boolean>;
+export interface IUserModel extends Model<TUser> {
+	paginate: (
+		filter: object,
+		options: TPaginateOptions
+	) => Promise<TPaginateResult<TUser>>;
 }
+

@@ -29,4 +29,8 @@ router.patch("/profile", auth("COMMON"), requestValidator(UserValidation.updateP
 
 router.get("/balance", auth("COMMON"), UserControllers.getBalance)
 
+router.get("/all", auth("ADMIN"), requestValidator(UserValidation.getAllUsersSchema), UserControllers.getAllUsers)
+
+router.patch("/status", auth("ADMIN"), requestValidator(UserValidation.changeUserStatusSchema), UserControllers.changeUserStatus)
+
 export const UserRoutes = router;

@@ -1,3 +1,4 @@
+import { TPaginateOptions } from "../../types/paginate";
 import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import { TSaveAddressDto, TSaveAddressQuery } from "./user.dto";
@@ -20,7 +21,7 @@ const setFcmToken = asyncHandler(async (req, res) => {
     );
 });
 
-const saveAddress = asyncHandler(async(req, res) => {
+const saveAddress = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const payload = req.body;
     const query = req.query as unknown as TSaveAddressQuery;
@@ -36,7 +37,7 @@ const saveAddress = asyncHandler(async(req, res) => {
     );
 })
 
-const getSavedAddress = asyncHandler(async(req, res) => {
+const getSavedAddress = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const query = req.query as unknown as TSaveAddressQuery;
 
@@ -51,7 +52,7 @@ const getSavedAddress = asyncHandler(async(req, res) => {
     );
 })
 
-const setCurrentLocation = asyncHandler(async(req, res) => {
+const setCurrentLocation = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const payload = req.body;
 
@@ -66,8 +67,8 @@ const setCurrentLocation = asyncHandler(async(req, res) => {
     );
 })
 
-const uploadFiles = asyncHandler(async(req, res) => {
-    const {urls} = req.body;
+const uploadFiles = asyncHandler(async (req, res) => {
+    const { urls } = req.body;
 
     res.status(httpStatus.OK).json(
         new ApiResponse({
@@ -76,10 +77,10 @@ const uploadFiles = asyncHandler(async(req, res) => {
             data: urls,
         }),
     );
-    
+
 })
 
-const updateProfile = asyncHandler(async(req, res) => {
+const updateProfile = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const payload = req.body;
 
@@ -94,7 +95,7 @@ const updateProfile = asyncHandler(async(req, res) => {
     );
 })
 
-const getMyProfile = asyncHandler(async(req, res) => {
+const getMyProfile = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
     const profile = await UserServices.getMyProfile(userId)
@@ -108,7 +109,7 @@ const getMyProfile = asyncHandler(async(req, res) => {
     );
 })
 
-const getBalance = asyncHandler(async(req, res) => {
+const getBalance = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
     const balance = await UserServices.getBalance(userId)
@@ -122,6 +123,41 @@ const getBalance = asyncHandler(async(req, res) => {
     );
 })
 
+const changeUserStatus = asyncHandler(async (req, res) => {
+    const payload = req.body;
+
+    await UserServices.changeUserStatus(payload)
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "User status changed successfully",
+            data: null,
+        }),
+    );
+})
+
+const getAllUsers = asyncHandler(async (req, res) => {
+
+    const query = req.validatedData.query;
+
+    const options = {
+        page: req.validatedData.query.page,
+        limit: req.validatedData.query.limit,
+        sortBy: req.validatedData.query.sortBy,
+        sortOrder: req.validatedData.query.sortOrder,
+    } as Omit<TPaginateOptions, "select" | "populate">;
+    const result = await UserServices.getAllUsers(query, options)
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "User status changed successfully",
+            data: result,
+        }),
+    );
+})
+
 export const UserControllers = {
     setFcmToken,
     saveAddress,
@@ -130,5 +166,7 @@ export const UserControllers = {
     uploadFiles,
     updateProfile,
     getMyProfile,
-    getBalance
+    getBalance,
+    getAllUsers,
+    changeUserStatus
 }

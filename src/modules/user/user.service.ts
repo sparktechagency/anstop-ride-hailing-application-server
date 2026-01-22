@@ -3,9 +3,10 @@ import ApiError from "../../utils/ApiError";
 import { User } from "./user.model";
 import httpStatus from "http-status";
 import { merge } from "lodash";
-import { TLocation, TUser } from "./user.interface";
-import { TSaveAddressDto, TSaveAddressQuery, TUpdateProfileDto } from "./user.dto";
+import { TLocation, TStatus, TUser } from "./user.interface";
+import { TChangeUserStatusDto, TSaveAddressDto, TSaveAddressQuery, TUpdateProfileDto } from "./user.dto";
 import { locationExists } from "./user.utils";
+import { TPaginateOptions } from "../../types/paginate";
 
 
 
@@ -107,14 +108,35 @@ const updateProfile = async (userId: Types.ObjectId, payload: TUpdateProfileDto)
 	return true;
 }
 
-const getBalance = async(userId: Types.ObjectId) => {
-    const user = await User.findById(userId).lean().select("balance");
-    if (!user) {
-        throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-    }
-    return user;
+const getBalance = async (userId: Types.ObjectId) => {
+	const user = await User.findById(userId).lean().select("balance");
+	if (!user) {
+		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+	}
+	return user;
 }
 
+const getAllUsers = async (filter: Record<string, any>, options: TPaginateOptions) => {
+	options.select = "name email profilePicture phoneNumber address status createdAt"
+	const users = await User.paginate(filter, options)
+
+	const totalUsers = await User.countDocuments(filter)
+	return { users, totalUsers };
+}
+
+const changeUserStatus = async (payload: TChangeUserStatusDto) => {
+	const user = await User.findById(payload.userId);
+	if (!user) {
+		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+	}
+
+	if(user.status === payload.status){
+		throw new ApiError(httpStatus.BAD_REQUEST, `${user.name} is already ${payload.status}`)
+	}
+	user.status = payload.status;	
+	await user.save();
+	return true;
+}
 
 
 export const UserServices = {
@@ -124,7 +146,9 @@ export const UserServices = {
 	setCurrentLocation,
 	updateProfile,
 	getMyProfile,
-	getBalance
+	getBalance,
+	getAllUsers,
+	changeUserStatus
 }
 
 
