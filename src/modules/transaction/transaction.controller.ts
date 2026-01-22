@@ -26,6 +26,19 @@ const getAllTransations = asyncHandler(async(req, res) => {
     
 })
 
+const transactionDetails = asyncHandler(async(req, res) => {
+
+    const transactionId = req.validatedData.params.transactionId;
+
+    const result = await TransactionService.transactionDetails(transactionId);
+
+    res.status(httpStatus.OK).json(new ApiResponse({
+        statusCode: httpStatus.OK,
+        message: "Transaction successfully retrived",
+        data: result
+    }))
+})
+
 
 const createTransaction = asyncHandler(async(req, res) => {
 
@@ -45,5 +58,6 @@ const createTransaction = asyncHandler(async(req, res) => {
 
 export const TransactionController = {
     getAllTransations,
-    createTransaction
+    createTransaction,
+    transactionDetails
 }

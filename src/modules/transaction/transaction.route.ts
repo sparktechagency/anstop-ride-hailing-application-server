@@ -12,4 +12,6 @@ router.get("/", auth("COMMON"), requestValidator(TransactionValidation.getAllTra
 
 router.post("/", auth("COMMON"), requestValidator(TransactionValidation.createTransactionSchema), TransactionController.createTransaction)
 
+router.get("/:transactionId", auth("COMMON"), requestValidator(TransactionValidation.transactionDetailsSchema), TransactionController.transactionDetails)
+
 export const TransactionRoutes = router;

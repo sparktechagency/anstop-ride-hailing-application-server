@@ -43,26 +43,50 @@ const createTransactionSchema = z.object({
         }),
         accountNumber: z.string({
             required_error: "Account number is required",
-        }),
+        }).optional(),
         accountHolderName: z.string({
             required_error: "Account holder name is required",
-        }),
+        }).optional(),
         accountType: z.string({
             required_error: "Account type is required",
-        }),
+        }).optional(),
         bankName: z.string({
             required_error: "Bank name is required",
-        }),
+        }).optional(),
         type: z.enum([TRANSACTION_TYPE.DEPOSIT, TRANSACTION_TYPE.WITHDRAWAL, TRANSACTION_TYPE.RIDE_FARE, TRANSACTION_TYPE.RIDE_TIP, TRANSACTION_TYPE.RIDE_CANCELATION], {
             required_error: "Type is required",
         }),
         status: z.enum([TRANSACTION_STATUS.COMPLETED, TRANSACTION_STATUS.FAILED], {
             required_error: "Status is required",
         }),
+        userId: z.string({
+            required_error: "User ID is required",
+        }).optional(),
+    })
+})
+// if type is withdrawal then userId is required
+.refine(
+    (data) => {
+        if(data.body.type === "WITHDRAWAL" && !data.body.userId){
+            return false;
+        }
+        return true;
+    },
+    {
+        message: "userId is required for withdrawal",
+    }
+)
+
+const transactionDetailsSchema = z.object({
+    params: z.object({
+        transactionId: z.string({
+            required_error: "Transaction ID is required",
+        }),
     })
 })
 
 export const TransactionValidation = {
     getAllTransationsSchema,
-    createTransactionSchema
+    createTransactionSchema,
+    transactionDetailsSchema
 } 

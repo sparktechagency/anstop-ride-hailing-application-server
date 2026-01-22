@@ -4,47 +4,69 @@ import paginate from "../../utils/paginate";
 import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "./transaction.constant";
 
 const transactionSchema = new Schema<TTransaction, ITransactionModel>(
-    {
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
-        amount: {
-            type: Number,
-            required: true
-        },
-        accountNumber: {
-            type: String,
-            required: true
-        },
-        accountHolderName: {
-            type: String,
-            required: true
-        },
-        accountType: {
-            type: String,
-            required: true
-        },
-        bankName: {
-            type: String,
-            required: true
-        },
-        type: {
-            type: String,
-            enum: Object.values(TRANSACTION_TYPE),
-            required: true
-        },
-        status: {
-            type: String,
-            enum: Object.values(TRANSACTION_STATUS),
-            required: true
-        }
+  {
+
+    riderId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
     },
-    {
-        timestamps: true
-    }
-)
+
+    driverId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
+
+    amount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    commissionRate: {
+      type: Number, // %
+      min: 0,
+      max: 100,
+    },
+
+    commissionAmount: {
+      type: Number, // actual system earning
+      min: 0,
+    },
+
+    driverEarningAmount: {
+      type: Number, // withdrawable earning
+      min: 0,
+    },
+
+    type: {
+      type: String,
+      enum: Object.values(TRANSACTION_TYPE),
+      required: true,
+      index: true,
+    },
+
+    status: {
+      type: String,
+      enum: Object.values(TRANSACTION_STATUS),
+      required: true,
+      index: true,
+    },
+
+    payoutDetails: {
+      accountNumber: String,
+      accountHolderName: String,
+      accountType: String,
+      bankName: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 
 transactionSchema.plugin(paginate)
 
