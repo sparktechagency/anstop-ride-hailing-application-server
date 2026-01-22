@@ -26,6 +26,9 @@ app.set("trust proxy", 1);
 // Get the absolute path to the public folder
 const publicPath = path.resolve(__dirname, "../public");
 
+const uploadPath = path.resolve(__dirname, "../uploads");
+app.use("/uploads", express.static(uploadPath));
+
 // Serve static files from root-level "public"
 app.use(express.static(publicPath));
 

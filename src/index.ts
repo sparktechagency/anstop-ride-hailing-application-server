@@ -6,8 +6,13 @@ import { Server } from "socket.io";
 import authenticateUser from "./socket/middleware";
 import { SocketHandler } from "./socket";
 import "./firebase/index";
-import { createAdminIfNotExist } from "./modules/admin/admin.utils";
 import http from "http";
+import seedLegalDocs from "./utils/seedLegalDocs";
+import { seedRides } from "./modules/ride/seed/seedRide";
+import seedConversation from "./modules/ride/seed/seed-conversation";
+import createAdminIfNotExist from "./utils/email/seedAdmin";
+// import { findNearestDrivers } from "./modules/rideRequest/rideRequest.service";
+
 
 let server: http.Server;
 
@@ -16,6 +21,7 @@ async function main(): Promise<void> {
 		const connectionInstance = await mongoose.connect(config.db_uri!);
 		console.log(
 			"Database is successfully connected!! Status:",
+			config.db_uri,
 			connectionInstance.connections[0].readyState === 1
 				? "online"
 				: "offline"
@@ -46,22 +52,27 @@ async function main(): Promise<void> {
 
 		SocketHandler(io);
 
+		// await createAdminIfNotExist();
 		await createAdminIfNotExist();
+		await seedLegalDocs();
+		// await findNearestDrivers([ 0, 0]);
+		// await seedConversation()
+		// await seedRides();
 	} catch (error) {
 		console.log("Oops! Connection failed", error);
 	}
 }
 main();
 
-process.on("SIGTERM", () => {
-	console.log("SIGTERM received. Shutting down gracefully...");
-	if (server) {
-		server.close(() => {
-			console.log("HTTP server closed.");
-			process.exit(0); // Gracefully exit
-		});
-	} else {
-		process.exit(0); // Exit anyway if no server
-	}
-});
+// process.on("SIGTERM", () => {
+// 	console.log("SIGTERM received. Shutting down gracefully...");
+// 	if (server) {
+// 		server.close(() => {
+// 			console.log("HTTP server closed.");
+// 			process.exit(0); // Gracefully exit
+// 		});
+// 	} else {
+// 		process.exit(0); // Exit anyway if no server
+// 	}
+// });
 

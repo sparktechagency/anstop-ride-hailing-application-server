@@ -1,14 +1,22 @@
-export const userSocketMap = new Map<string, Set<string>>(); // userId -> Set<socket.id>
-export const driverSocketMap = new Map<string, Set<string>>();
+export const userSocketMap = new Map<string, Set<string>>();
+export const userRoomMap = new Map<string, Set<string>>();
 
-export const addSocketToMap = (map: Map<string, Set<string>>, id: string, socketId: string) => {
-	if (!map.has(id)) map.set(id, new Set());
-	map.get(id)!.add(socketId);
+export const addToMap = (
+  map: Map<string, Set<string>>,
+  id: string,
+  target: string
+) => {
+  if (!map.has(id)) map.set(id, new Set());
+  map.get(id)!.add(target);
 };
 
-export const removeSocketFromMap = (map: Map<string, Set<string>>, id: string, socketId: string) => {
-	if (map.has(id)) {
-		map.get(id)!.delete(socketId);
-		if (map.get(id)!.size === 0) map.delete(id);
-	}
+export const removeFromMap = (
+  map: Map<string, Set<string>>,
+  id: string,
+  target: string
+) => {
+  if (map.has(id)) {
+    map.get(id)!.delete(target);
+    if (map.get(id)!.size === 0) map.delete(id);
+  }
 };

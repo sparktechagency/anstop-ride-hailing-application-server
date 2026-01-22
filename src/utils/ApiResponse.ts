@@ -19,13 +19,13 @@ class ApiResponse<T> {
     success?: boolean;
     message?: string;
     meta?: TMeta;
-    data: { attributes: T };
+    data: T;
 
-    constructor({ statusCode, success, message, data, meta }: TResponse<T>) {
+    constructor({ statusCode, success = true, message, data, meta }: TResponse<T>) {
         this.statusCode = statusCode;
         this.success = success;
         this.message = message;
-        this.data = {attributes: data};
+        this.data =  data;
         this.meta = meta;
     }
 }

@@ -1,4 +1,3 @@
-import { Driver } from "../modules/driver/driver.model";
 import { User } from "../modules/user/user.model";
 import ApiError from "../utils/ApiError";
 import {

@@ -2,12 +2,15 @@ import { Router } from "express";
 import { AuthRoutes } from "../modules/auth/auth.route";
 import { UserRoutes } from "../modules/user/user.route";
 import { RideRequestRoutes } from "../modules/rideRequest/rideRequest.route";
-import { AccountRoutes } from "../modules/account/account.route";
 import { SharedRoutes } from "../shared/shared.route";
-import { DriverRoutes } from "../modules/driver/driver.route";
-import { AdminRoutes } from "../modules/admin/admin.route";
 import { NotificationRoutes } from "../modules/notification/notification.route";
-import { RiderRoutes } from "../modules/rider/rider.route";
+import { LegalDocumentRoutes } from "../modules/legalDocument/legalDocument.route";
+import { RideRoutes } from "../modules/ride/ride.route";
+import { MessageRoutes } from "../modules/messaging/message/message.route";
+import { DriverRoutes } from "../modules/driver/driver.route";
+import { TransactionRoutes } from "../modules/transaction/transaction.route";
+import { SupportRoutes } from "../modules/support/support.route";
+import { WithdrawalRequestRoutes } from "../modules/withdrawalRequest/withdrawalRequest.route";
 
 const router = Router();
 
@@ -21,24 +24,8 @@ const routesInfo = [
 		route: UserRoutes,
 	},
 	{
-		path: "/riders",
-		route: RiderRoutes,
-	},
-	{
-		path: "/drivers",
-		route: DriverRoutes,
-	},
-	{
-		path: "/admins",
-		route: AdminRoutes,
-	},
-	{
 		path: "/ride-requests",
 		route: RideRequestRoutes,
-	},
-	{
-		path: "/accounts",
-		route: AccountRoutes,
 	},
 	{
 		path: "/shared",
@@ -48,6 +35,38 @@ const routesInfo = [
 		path: "/notifications",
 		route: NotificationRoutes,
 	},
+	{
+		path: "/legal-documents",
+		route: LegalDocumentRoutes,
+	}, 
+	{
+		path: "/rides",
+		route: RideRoutes,
+	},
+	{
+		path: "/messages",
+		route: MessageRoutes,
+	},
+	{
+		path: "/drivers",
+		route: DriverRoutes,
+	},
+	{
+		path: "/transactions",
+		route: TransactionRoutes,
+	},
+	{
+		path: "/supports",
+		route: SupportRoutes,
+	},
+	{
+		path: "/notifications",
+		route: NotificationRoutes
+	},
+	{
+		path: "/withdrawal-requests",
+		route: WithdrawalRequestRoutes
+	}
 ];
 
 routesInfo.forEach((route) => {

@@ -6,7 +6,9 @@ import { User } from "../modules/user/user.model";
 import asyncHandler from "../utils/asyncHandler";
 import ApiError from "../utils/ApiError";
 import jwt from "jsonwebtoken";
-import { RoleRights, TRoles } from "../shared/shared.interface";
+import { TRole } from "../modules/user/user.interface";
+import { RoleRights } from "../modules/user/user.constant";
+
 
 const auth = (
 	...roles: string[]
@@ -38,8 +40,8 @@ const auth = (
 		try {
 			decoded = jwt.verify(
 				token,
-				config.jwt_access_secret as string
-			) as JwtPayload & { _id: string; role: TRoles };
+				config.JWT.access_secret as string
+			) as JwtPayload & { _id: string; role: TRole[] };
 		} catch {
 			throw new ApiError(
 				httpStatus.UNAUTHORIZED,
@@ -75,9 +77,18 @@ const auth = (
 		}
 
 		if (roles.length) {
-			const userRole = RoleRights.get(user.role);
-			const hasRole = userRole?.some((role) => roles.includes(role));
-			if (!hasRole) {
+			let userPermissions: Set<string> = new Set();
+
+
+			user.role.forEach((role) => {
+				RoleRights.get(role)?.forEach((right) => {
+					userPermissions.add(right);
+				});
+			});
+
+			const hasPermission = roles.some((role) => userPermissions.has(role));
+			console.log(hasPermission, userPermissions, roles);
+			if (!hasPermission) {
 				throw new ApiError(
 					httpStatus.FORBIDDEN,
 					"You don't have permission to access this API."

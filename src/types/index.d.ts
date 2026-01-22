@@ -6,6 +6,11 @@ declare global {
 	namespace Express {
 		interface Request {
 			user: { _id: Types.ObjectId; role: TRoles };
+			validatedData: {
+				body: any;
+				params: any;
+				query: any;
+			};
 		}
 	}
 	var io: import("socket.io").Server;
@@ -15,10 +20,10 @@ declare global {
 declare module "socket.io" {
 	interface Socket {
 		payload: {
-			userId: string;
+			_id: string;
 			role: TRoles;
 		};
 	}
 }
 
-export {};
+export { };

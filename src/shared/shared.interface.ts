@@ -3,6 +3,7 @@ import {
 	languagePreferenceValidationSchema,
 	setUserAddressValidationSchema,
 } from "./shared.validation";
+import { Types } from "mongoose";
 
 export type TUserName = {
 	firstName: string;
@@ -22,32 +23,11 @@ export const LanguagePreference = {
 
 export type TLanguagePreference = "en" | "es" | "fr";
 
-export const UserRoles = {
-	Rider: "Rider",
-	Driver: "Driver",
-	Admin: "Admin",
-	Super_Admin: "Super_Admin",
-};
 
-export const RoleRights = new Map<string, string[]>([
-	[UserRoles.Rider, ["Common", "Rider"]],
-	[UserRoles.Driver, ["Common", "Driver"]],
-	[UserRoles.Admin, ["Common", "Admin"]],
-	[UserRoles.Super_Admin, ["Common", "Admin", "Super_Admin"]],
-]);
-
-export const Roles = [
-	UserRoles.Rider,
-	UserRoles.Driver,
-	UserRoles.Admin,
-	UserRoles.Super_Admin,
-] as const;
-
-export type TRoles = (typeof Roles)[number];
 
 // authenticated user request
 export type TUserData = {
-	userId: string;
+	userId: Types.ObjectId;
 	role: string;
 };
 
