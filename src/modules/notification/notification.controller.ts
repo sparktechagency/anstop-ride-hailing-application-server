@@ -36,7 +36,8 @@ const getAllNotifications = asyncHandler(async (req, res) => {
 		new ApiResponse({
 			statusCode: httpStatus.OK,
 			message: "Notifications fetched successfully",
-			data: notifications,
+			data: notifications.results,
+			meta: notifications.meta,
 		})
 	);
 });

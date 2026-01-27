@@ -20,10 +20,9 @@ const getAllTransations = asyncHandler(async(req, res) => {
         res.status(httpStatus.OK).json(new ApiResponse({
             statusCode: httpStatus.OK,
             message: "Transaction successfully retrived",
-            data: result
+            data: result.results,
+            meta: result.meta,
         }))
-    
-    
 })
 
 const transactionDetails = asyncHandler(async(req, res) => {

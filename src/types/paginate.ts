@@ -8,8 +8,10 @@ export interface TPaginateOptions {
 }
 export interface TPaginateResult<T> {
 	results: T[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	totalResults: number;
+	meta: {
+		page: number;
+		limit: number;
+		totalPages: number;
+		totalResults: number;
+	}
 }

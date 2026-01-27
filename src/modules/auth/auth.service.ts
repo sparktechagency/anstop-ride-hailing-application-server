@@ -58,7 +58,7 @@ const SignUpUser = async (userData: TUserSignUpDTO): Promise<void> => {
 	);
 };
 
-const SignInUser = async(payload: TUserSignInDTO) => {
+const SignInUser = async (payload: TUserSignInDTO) => {
 	const user = await User.findOne({
 		email: payload.email,
 	});
@@ -94,7 +94,7 @@ const SignInUser = async(payload: TUserSignInDTO) => {
 			{ email: user.email, username: user.name },
 			otpDetails.otp,
 			otpDetails.expirationTime
-		);	
+		);
 
 		return {
 			needsVerification: true,
@@ -112,14 +112,20 @@ const SignInUser = async(payload: TUserSignInDTO) => {
 	const refreshToken = GenerateToken(
 		{ _id: user._id.toString(), role: user.role },
 		config.JWT.refresh_secret,
-		config.JWT.refresh_expiration_time 
+		config.JWT.refresh_expiration_time
 	);
 
 	return {
 		accessToken,
 		refreshToken,
-		role: user.role,
+
 		needsVerification: false,
+		user: {
+			name: user.name,
+			profilePicture: user.profilePicture,
+			email: user.email,
+			role: user.role,
+		},
 	};
 };
 
@@ -177,7 +183,7 @@ const verifyOTP = async (payload: TOtpVerificationDTO) => {
 	const refreshToken = GenerateToken(
 		{ _id: user._id.toString(), role: user.role },
 		config.JWT.refresh_secret,
-		config.JWT.refresh_expiration_time 
+		config.JWT.refresh_expiration_time
 	);
 
 
@@ -186,7 +192,7 @@ const verifyOTP = async (payload: TOtpVerificationDTO) => {
 		user.isEmailVerified = true;
 		await user.save();
 	}
-	return { accessToken, refreshToken, role: user.role	 };
+	return { accessToken, refreshToken, role: user.role };
 };
 
 const resendOTP = async (userData: TResendOtpDTO): Promise<void> => {

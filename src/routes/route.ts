@@ -11,6 +11,7 @@ import { DriverRoutes } from "../modules/driver/driver.route";
 import { TransactionRoutes } from "../modules/transaction/transaction.route";
 import { SupportRoutes } from "../modules/support/support.route";
 import { WithdrawalRequestRoutes } from "../modules/withdrawalRequest/withdrawalRequest.route";
+import { AdminRoutes } from "../modules/admin/admin.route";
 
 const router = Router();
 
@@ -66,6 +67,10 @@ const routesInfo = [
 	{
 		path: "/withdrawal-requests",
 		route: WithdrawalRequestRoutes
+	},
+	{
+		path: "/admin",
+		route: AdminRoutes
 	}
 ];
 

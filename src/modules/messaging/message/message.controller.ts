@@ -40,7 +40,8 @@ const getAllMessagesInConversation = asyncHandler(async (req, res) => {
 		new ApiResponse({
 			statusCode: httpStatus.OK,
 			message: "Messages fetched successfully",
-			data: messages,
+			data: messages.results,
+			meta: messages.meta,
 		})
 	);
 });

@@ -36,10 +36,12 @@ const paginate = <T>(schema: Schema<T>) => {
 
 		return {
 			results,
-			page,
-			limit,
-			totalPages,
-			totalResults,
+			meta: {
+				page,
+				limit,
+				totalPages,
+				totalResults,
+			}
 		};
 	};
 };

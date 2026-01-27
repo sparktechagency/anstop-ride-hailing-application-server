@@ -29,6 +29,10 @@ const getAllTransationsSchema = z.object({
                 })
                 .default("asc")
                 .transform((val) => (val === "asc" ? 1 : -1)),
+
+            startDate: z.string().optional(),
+            endDate: z.string().optional(),
+            search: z.string().optional(),
         })
         .strict(),
 });

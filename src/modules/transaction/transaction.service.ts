@@ -77,7 +77,7 @@ const getAllTransations = async (filter: Record<string, any>, options: TPaginate
     options.select = "transactionId riderId amount commissionRate commissionAmount driverEarningAmount type status driverId payoutDetails createdAt status"
     options.populate = {
         path: "riderId",
-        select: "name"
+        select: "name email role"
     }
     return await Transaction.paginate(filter, options)
 }
@@ -91,8 +91,6 @@ const transactionDetails = async (transactionId: Types.ObjectId) => {
         path: "driverId",
         select: "name email"
     }).lean();
-
-
 }
 
 export const TransactionService = {

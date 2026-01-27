@@ -203,7 +203,7 @@ const dashboardStats = async () => {
             $group: {
                 _id: null,
                 totalWithdrawals: {
-                    $sum: "$driverEarningAmount"
+                    $sum: "$amount"
                 }
             }
         }
@@ -213,17 +213,18 @@ const dashboardStats = async () => {
         totalUsers,
         totalRiders,
         totalDrivers,
-        totalRevenue,
-        totalWithdrawals,
+        totalRevenue: totalRevenue[0]?.totalRevenue || 0,
+        totalWithdrawals: totalWithdrawals[0]?.totalWithdrawals || 0,
     }
 }
 
 
-const earningsChart = async (filter: {
-    startDate: Date,
-    endDate: Date,
-}) => {
-    // earnings by breaking down by month and retrun monthly earnings and if no earnings in a month return 0 on that month
+const earningsChart = async (filter: { year?: string }) => {
+    const currentYear = new Date().getFullYear();
+    const year = filter.year ? parseInt(filter.year) : currentYear;
+
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31, 23, 59, 59);
 
     const earnings = await Transaction.aggregate([
         {
@@ -231,33 +232,39 @@ const earningsChart = async (filter: {
                 type: TRANSACTION_TYPE.RIDE_FARE,
                 status: TRANSACTION_STATUS.COMPLETED,
                 createdAt: {
-                    $gte: filter.startDate,
-                    $lte: filter.endDate
+                    $gte: startDate,
+                    $lte: endDate
                 }
             }
         },
         {
             $group: {
-                _id: {
-                    month: {
-                        $month: "$createdAt"
-                    },
-                    year: {
-                        $year: "$createdAt"
-                    }
-                },
-                totalEarnings: {
-                    $sum: "$commissionAmount"
-                }
+                _id: { $month: "$createdAt" },
+                totalEarnings: { $sum: "$commissionAmount" }
             }
-        }
-    ])
+        },
+        { $sort: { "_id": 1 } }
+    ]);
 
-    return earnings
+    // Map results to all 12 months
+    const monthNames = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    const result = monthNames.map((month, index) => {
+        const monthData = earnings.find((e) => e._id === index + 1);
+        return {
+            month,
+            totalEarnings: monthData ? monthData.totalEarnings : 0
+        };
+    });
+
+    return result;
 }
 
 const earningStats = async () => {
-    
+
     const totalTransactionAmount = await Transaction.aggregate([
         {
             $match: {
@@ -294,8 +301,8 @@ const earningStats = async () => {
     const totalDriver = await User.countDocuments({ role: USER_ROLES.DRIVER })
 
     return {
-        totalTransactionAmount,
-        totalDriverWithdrawableAmount,
+        totalTransactionAmount: totalTransactionAmount[0]?.totalTransactionAmount || 0,
+        totalDriverWithdrawableAmount: totalDriverWithdrawableAmount[0]?.totalDriverWithdrawableAmount || 0,
         totalDriver,
     }
 }

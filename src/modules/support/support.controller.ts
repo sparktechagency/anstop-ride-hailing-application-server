@@ -33,7 +33,8 @@ const getMySupportMessage = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         message: "Support messages fetched successfully",
-        data: supportMessages
+        data: supportMessages.results,
+        meta: supportMessages.meta,
     })
 })
 
@@ -54,7 +55,8 @@ const getAllSupportMessages = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         message: "Support messages fetched successfully",
-        data: supportMessages
+        data: supportMessages.results,
+        meta: supportMessages.meta,
     })
 })
 

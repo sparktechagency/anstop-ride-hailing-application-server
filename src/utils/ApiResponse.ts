@@ -1,16 +1,17 @@
+import { TPaginateOptions } from "../types/paginate";
 
 interface TMeta {
     page: number;
     limit: number;
     total: number;
-    totalPage: number;
+    totalPages: number;
 }
 
 interface TResponse<T> {
     statusCode: number;
     success?: boolean;
     message?: string;
-    meta?: TMeta;
+    meta?: TPaginateOptions;
     data: T;
 }
 
@@ -18,7 +19,7 @@ class ApiResponse<T> {
     statusCode: number;
     success?: boolean;
     message?: string;
-    meta?: TMeta;
+    meta?: TPaginateOptions;
     data: T;
 
     constructor({ statusCode, success = true, message, data, meta }: TResponse<T>) {
