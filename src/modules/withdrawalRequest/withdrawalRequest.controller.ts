@@ -26,12 +26,19 @@ const getAllWithdrawalRequest = asyncHandler(async(req, res) => {
 		sortOrder: query.sortOrder,
     }
 
-    const result = await withdrawalRequestService.getAllWithdrawalRequest({}, options)
+    const filter: Record<string, any> = {}
+
+    if(query.status){
+        filter.status = query.status
+    }
+
+    const result = await withdrawalRequestService.getAllWithdrawalRequest(filter, options)
 
     res.status(200).json({
         success: true,
         message: "Withdrawal requests retrieved successfully",
-        data: result
+        data: result.results,
+        meta: result.meta,
     })
 })
 
@@ -52,7 +59,8 @@ const getMyWithdrawalRequest = asyncHandler(async(req, res) => {
     res.status(200).json({
         success: true,
         message: "Withdrawal requests retrieved successfully",
-        data: result
+        data: result.results,
+        meta: result.meta,
     })
 })
 
@@ -62,7 +70,7 @@ const rejectWithdrawRequest = asyncHandler(async(req, res) => {
     const result = await withdrawalRequestService.rejectWithdrawRequest(payload)
     res.status(200).json({
         success: true,
-        message: "Withdrawal requests retrieved successfully",
+        message: "Withdrawal request rejected successfully",
         data: result
     })
 })

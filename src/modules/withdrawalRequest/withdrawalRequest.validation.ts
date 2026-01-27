@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { WITHDRAWAL_STATUS } from "./withdrawalRequest.constant";
 
 const createSchema = z.object({
     body: z.object({
@@ -39,6 +40,7 @@ const getAllSchema = z.object({
                 })
                 .default("asc")
                 .transform((val) => (val === "asc" ? 1 : -1)),
+            status: z.enum([WITHDRAWAL_STATUS.PENDING, WITHDRAWAL_STATUS.COMPLETED, WITHDRAWAL_STATUS.REJECTED]).optional(),
         })
         .strict()
 });
