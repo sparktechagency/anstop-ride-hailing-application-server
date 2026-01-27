@@ -29,8 +29,10 @@ router.patch("/profile", auth("COMMON"), requestValidator(UserValidation.updateP
 
 router.get("/balance", auth("COMMON"), UserControllers.getBalance)
 
-router.get("/all", auth("ADMIN"), requestValidator(UserValidation.getAllUsersSchema), UserControllers.getAllUsers)
+router.get("/", auth("ADMIN"), requestValidator(UserValidation.getAllUsersSchema), UserControllers.getAllUsers)
 
 router.patch("/status", auth("ADMIN"), requestValidator(UserValidation.changeUserStatusSchema), UserControllers.changeUserStatus)
+
+router.get("/driver/:userId", auth("ADMIN"), requestValidator(UserValidation.getDriverDetailsSchema), UserControllers.getDriverDetails)
 
 export const UserRoutes = router;

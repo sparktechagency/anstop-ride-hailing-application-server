@@ -147,13 +147,46 @@ const getAllUsers = asyncHandler(async (req, res) => {
         sortBy: req.validatedData.query.sortBy,
         sortOrder: req.validatedData.query.sortOrder,
     } as Omit<TPaginateOptions, "select" | "populate">;
-    const result = await UserServices.getAllUsers(query, options)
+
+    const filter: Record<string, any> = {}
+
+    if (query.role) {
+        filter.role = query.role
+    }
+
+    if (query.status) {
+        filter.status = query.status
+    }
+
+    const result = await UserServices.getAllUsers(filter, options)
 
     res.status(httpStatus.OK).json(
         new ApiResponse({
             statusCode: httpStatus.OK,
             message: "User status changed successfully",
-            data: result,
+            data: {
+                users: result.paginationResults,
+                totalUsers: result.totalUsers
+            },
+            meta: result.paginationResults.meta,
+        }),
+    );
+})
+
+const getDriverDetails = asyncHandler(async (req, res) => {
+    const userId = req.validatedData.params.userId;
+
+    const driverDetails = await UserServices.getDRiverDetails(
+        {
+            userId
+        }
+    )
+
+    res.status(httpStatus.OK).json(
+        new ApiResponse({
+            statusCode: httpStatus.OK,
+            message: "Driver details retrieved successfully",
+            data: driverDetails,
         }),
     );
 })
@@ -168,5 +201,6 @@ export const UserControllers = {
     getMyProfile,
     getBalance,
     getAllUsers,
-    changeUserStatus
+    changeUserStatus,
+    getDriverDetails
 }

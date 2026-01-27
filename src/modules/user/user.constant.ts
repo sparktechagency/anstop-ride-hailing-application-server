@@ -18,6 +18,7 @@ export const USER_STATUS = {
 	ACTIVE: "ACTIVE",
 	PENDING: "PENDING",
 	SUSPENDED: "SUSPENDED",
+	REJECTED: "REJECTED",
 } as const;
 
 

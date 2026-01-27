@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { usernameValidationSchema } from "../../shared/shared.validation";
-import { SAVED_ADDRESS_TYPE, USER_STATUS } from "./user.constant";
+import { SAVED_ADDRESS_TYPE, USER_ROLES, USER_STATUS } from "./user.constant";
 
 
 // Validation schema and type for onboarding a user
@@ -126,14 +126,24 @@ const getAllUsersSchema = z.object({
 				})
 				.default("asc")
 				.transform((val) => (val === "asc" ? 1 : -1)),
+
+			role: z.enum([USER_ROLES.RIDER, USER_ROLES.DRIVER]).optional(),
+
+			status: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED]).optional(),
 		})
 		.strict(),
 })
 
 const changeUserStatusSchema = z.object({
 	body: z.object({
-		userId: z.string(),
-		status: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED]),
+		userId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid user ID"),
+		status: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED]),
+	})
+})
+
+const getDriverDetailsSchema = z.object({
+	params: z.object({
+		userId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid user ID"),
 	})
 })
 
@@ -146,6 +156,7 @@ export const UserValidation = {
 	uploadFilesSchema,
 	updateProfileSchema,
 	getAllUsersSchema,
-	changeUserStatusSchema
+	changeUserStatusSchema,
+	getDriverDetailsSchema
 }
 

@@ -191,6 +191,7 @@ const userSchema = new Schema<TUser, IUserModel>(
 			type: Boolean,
 			default: false,
 		},
+
 	},
 	{
 		timestamps: true,
@@ -216,5 +217,7 @@ userSchema.pre("save", async function (next) {
 		next(err as Error);
 	}
 });
+
+userSchema.plugin(paginate);
 
 export const User = model<TUser, IUserModel>("User", userSchema);

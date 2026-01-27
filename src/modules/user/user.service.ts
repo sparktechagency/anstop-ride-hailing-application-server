@@ -4,9 +4,10 @@ import { User } from "./user.model";
 import httpStatus from "http-status";
 import { merge } from "lodash";
 import { TLocation, TStatus, TUser } from "./user.interface";
-import { TChangeUserStatusDto, TSaveAddressDto, TSaveAddressQuery, TUpdateProfileDto } from "./user.dto";
+import { TChangeUserStatusDto, TGetDriverDetailsDto, TSaveAddressDto, TSaveAddressQuery, TUpdateProfileDto } from "./user.dto";
 import { locationExists } from "./user.utils";
 import { TPaginateOptions } from "../../types/paginate";
+import { USER_ROLES } from "./user.constant";
 
 
 
@@ -76,7 +77,7 @@ const setCurrentLocation = async (userId: Types.ObjectId, payload: TSaveAddressD
 }
 
 const getMyProfile = async (userId: Types.ObjectId) => {
-	const user = await User.findById(userId).select("name email profilePicture phoneNumber address location locationName")
+	const user = await User.findById(userId).select("name email profilePicture phoneNumber address location locationName role")
 	if (!user) {
 		throw new ApiError(httpStatus.NOT_FOUND, "User not found")
 	}
@@ -117,11 +118,16 @@ const getBalance = async (userId: Types.ObjectId) => {
 }
 
 const getAllUsers = async (filter: Record<string, any>, options: TPaginateOptions) => {
-	options.select = "name email profilePicture phoneNumber address status createdAt"
-	const users = await User.paginate(filter, options)
+	options.select = "name email profilePicture phoneNumber address status role createdAt"
+
+	console.log("filter", filter);
+	console.log("options", options);
+
+	const paginationResults = await User.paginate(filter, options)
 
 	const totalUsers = await User.countDocuments(filter)
-	return { users, totalUsers };
+	
+	return {paginationResults, totalUsers}
 }
 
 const changeUserStatus = async (payload: TChangeUserStatusDto) => {
@@ -138,6 +144,23 @@ const changeUserStatus = async (payload: TChangeUserStatusDto) => {
 	return true;
 }
 
+const getDRiverDetails = async(payload: TGetDriverDetailsDto) => {
+	const user = await User.findById(payload.userId).select("name email profilePicture phoneNumber address status role createdAt dateOfBirth gender nid drivingLicense carInformation isOnboarded");
+	if (!user) {
+		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+	}
+
+	if(!user.role.includes(USER_ROLES.DRIVER)){
+		throw new ApiError(httpStatus.BAD_REQUEST, "User is not a driver");
+	}
+	
+
+	if(!user.isOnboarded){
+		throw new ApiError(httpStatus.BAD_REQUEST, "User is not onboarded");
+	}
+
+	return user;
+}
 
 export const UserServices = {
 	setFcmToken,
@@ -148,7 +171,8 @@ export const UserServices = {
 	getMyProfile,
 	getBalance,
 	getAllUsers,
-	changeUserStatus
+	changeUserStatus,
+	getDRiverDetails
 }
 
 
