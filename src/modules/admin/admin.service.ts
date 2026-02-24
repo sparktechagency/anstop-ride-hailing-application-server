@@ -2,6 +2,7 @@ import { USER_ROLES } from "../user/user.constant";
 import { User } from "../user/user.model";
 import { Transaction } from "../transaction/transaction.model";
 import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../transaction/transaction.constant";
+
 // const dashboardStats = async () => {
 //     const totalUsers = await User.countDocuments();
 //     const totalRider = await User.countDocuments({ role: USER_ROLES.RIDER });
@@ -217,7 +218,6 @@ const dashboardStats = async () => {
         totalWithdrawals: totalWithdrawals[0]?.totalWithdrawals || 0,
     }
 }
-
 
 const earningsChart = async (filter: { year?: string }) => {
     const currentYear = new Date().getFullYear();
