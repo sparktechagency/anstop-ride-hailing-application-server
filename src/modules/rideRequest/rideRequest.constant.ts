@@ -31,10 +31,16 @@ const REFUND_STATUS = {
 	FAILED: "FAILED",
 } as const;
 
+const RIDE_FOR = {
+	SELF: "SELF",
+	OTHER: "OTHER"
+}
+
 export const RideConstants = {
 	RIDE_NEEDS,
 	RIDE_STATUS,
 	PAYMENT_METHOD,
 	CANCELLED_BY,
 	REFUND_STATUS,
+	RIDE_FOR
 };

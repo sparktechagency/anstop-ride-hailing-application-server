@@ -46,14 +46,14 @@ const rideRequestSchema = new Schema<TRideRequest>(
 			type: String,
 			required: true
 		},
-		baseFare: {
+		fare: {
 			type: Number,
 			required: true
 		},
-		finalFare: {
-			type: Number,
-			
-		},
+		// finalFare: {
+		// 	type: Number,
+
+		// },
 		note: {
 			type: String,
 			default: ""
@@ -62,7 +62,15 @@ const rideRequestSchema = new Schema<TRideRequest>(
 			type: [String],
 			default: []
 		},
-		
+		rideFor: {
+			type: String,
+			enum: Object.values(RideConstants.RIDE_FOR),
+			default: RideConstants.RIDE_FOR.SELF,
+		},
+		riderNumber: {
+			type: String,
+		},
+
 		status: {
 			type: String,
 			enum: Object.values(RideConstants.RIDE_STATUS),
@@ -74,7 +82,7 @@ const rideRequestSchema = new Schema<TRideRequest>(
 			enum: Object.values(RideConstants.PAYMENT_METHOD),
 			default: RideConstants.PAYMENT_METHOD.CASH,
 		},
-		
+
 	},
 	{
 		timestamps: true,
