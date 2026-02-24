@@ -6,6 +6,7 @@ import { Participant } from "../../../../modules/messaging/participant/participa
 import mongoose, { Types } from "mongoose";
 import { MessagePrivateService } from "../../../../modules/messaging/message/message.service";
 import { InboxPrivateService } from "../../../../modules/messaging/inbox/inbox.service";
+import SocketError from "../../../utils/socketError";
 
 const emitNewMessageToUser = async (payload: {
 	userId: string;
@@ -46,107 +47,71 @@ const emitNewMessageToUser = async (payload: {
 	});
 };
 
-export const MessageEventHandler = (socket: Socket) => {
-	socket.on("send-new-message", async (data, callback = () => {}) => {
+export const sendMessageEventHandler = async (socket: Socket, data: any) => {
 
-		const {conversationId, text, attachments} = data;
-		const {_id: userId} = socket.payload;
+	const { conversationId, text, attachments } = data;
+	const { _id: userId } = socket.payload;
 
-		// if (!data || !data.conversationId || !data.message) {
-		// 	callback({
-		// 		success: false,
-		// 		message: "Invalid data",
-		// 		data: null,
-		// 	});
-		// }
-
-		const conversation = await Conversation.findOne({
-			_id: conversationId,
-		});
-
-		if (!conversation) {
-			console.log("conversation not found");
-			callback({
-				success: false,
-				message: "Conversation not found",
-				data: null,
-			});
-			return;
-		}
-
-		const isParticipant = await Participant.findOne({
-			conversation: conversationId,
-			user: userId,
-		});
-
-		if (!isParticipant) {
-			console.log("you are not a participant of this conversation");
-			callback({
-				success: false,
-				message: "You are not a participant of this conversation",
-				data: null,
-			});
-			return;
-		}
-
-		const session = await mongoose.startSession();
-
-		try {
-			session.startTransaction();
-
-			const message = await MessagePrivateService.createMessage(
-				{
-					conversation: conversationId,
-					sender: userId,
-					text,
-					attachments,
-				},
-				{ session }
-			);
-
-			await InboxPrivateService.createInbox(
-				{
-					messageId: message[0]?._id,
-					conversationId,
-					participantId: new Types.ObjectId(userId),
-				},
-				{ session }
-			);
-
-			await session.commitTransaction();
-		} catch (error) {
-			await session.abortTransaction();
-			console.log("failed to send message", error);
-			callback({
-				success: false,
-				message: (error as Error).message || "Failed to send message",
-				data: null,
-			});
-		} finally {
-			await session.endSession();
-		}
-
-		// ConversationSocket.emitNewMessageToConversation({
-		// 	socket,
-		// 	conversationId,
-		// 	message: data,
-		// });
-
-		emitNewMessageToUser({
-			userId: socket.payload._id.toString(),
-			conversationId: data.conversationId,
-			messageInfo: data,
-		});
-
-		callback({
-				success: true,
-				message: "Message sent successfully",
-				data: null,
-			});
+	const conversation = await Conversation.findOne({
+		_id: conversationId,
 	});
+
+	if(!conversation){
+		throw new SocketError("send-new-message", "Conversation not found", null);
+	}
+
+
+	const isParticipant = await Participant.findOne({
+		conversation: conversationId,
+		user: userId,
+	});
+
+	if (!isParticipant) {
+		throw new SocketError("send-new-message", "You are not a participant of this conversation", null);
+	}
+
+	const session = await mongoose.startSession();
+
+	try {
+		session.startTransaction();
+
+		const message = await MessagePrivateService.createMessage(
+			{
+				conversation: conversationId,
+				sender: userId,
+				text,
+				attachments,
+			},
+			{ session }
+		);
+
+		await InboxPrivateService.createInbox(
+			{
+				messageId: message[0]?._id,
+				conversationId,
+				participantId: new Types.ObjectId(userId),
+			},
+			{ session }
+		);
+
+		await session.commitTransaction();
+	} catch (error) {
+		await session.abortTransaction();
+		console.log("failed to send message", error);
+		throw new SocketError("send-new-message", "Failed to send message", null);
+	} finally {
+		await session.endSession();
+	}
+
+	emitNewMessageToUser({
+		userId: socket.payload._id.toString(),
+		conversationId: data.conversationId,
+		messageInfo: data,
+	});
+
 };
 
 export const MessageSocket = {
 	emitNewMessageToUser,
-	MessageEventHandler,
+	sendMessageEventHandler,
 };
