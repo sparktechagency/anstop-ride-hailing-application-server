@@ -8,7 +8,7 @@ const EmailVerificationTemplate = (payload: {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Verify Your BOARDPIX Account</title>
+  <title>Verify Your ANSTOP Account</title>
   <style>
     body {
       background-color: #f5f7fa;
@@ -29,7 +29,7 @@ const EmailVerificationTemplate = (payload: {
       width: 100%;
       padding: 40px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      border-top: 5px solid #50D4FB;
+      border-top: 5px solid #00B894;
     }
     .email-header {
       text-align: center;
@@ -37,7 +37,7 @@ const EmailVerificationTemplate = (payload: {
     .email-header h1 {
       font-size: 26px;
       margin: 0;
-      color: #50D4FB;
+      color: #00B894;
     }
     .email-body {
       margin-top: 24px;
@@ -50,28 +50,22 @@ const EmailVerificationTemplate = (payload: {
       margin: 30px 0;
     }
     .otp-code {
-      background-color: #e0f7fa;
-      color: #00796b;
+      background-color: #e8f9f5;
+      color: #00B894;
       font-size: 32px;
       font-weight: bold;
       letter-spacing: 6px;
       padding: 14px 30px;
       border-radius: 10px;
-      border: 2px solid #50D4FB;
+      border: 2px solid #00B894;
       display: inline-block;
     }
-    .cta-button {
-      display: inline-block;
-      background-color: #50D4FB;
-      color: white;
-      font-weight: bold;
-      padding: 12px 25px;
-      border-radius: 8px;
-      text-decoration: none;
-      margin-top: 30px;
-    }
-    .cta-button:hover {
-      background-color: #4db6e0;
+    .expiration-note {
+      text-align: center;
+      font-size: 14px;
+      color: #ff6b6b;
+      margin: 20px 0;
+      font-weight: 500;
     }
     .footer {
       text-align: center;
@@ -80,7 +74,7 @@ const EmailVerificationTemplate = (payload: {
       margin-top: 40px;
     }
     .footer strong {
-      color: #475569;
+      color: #00B894;
     }
   </style>
 </head>
@@ -88,27 +82,30 @@ const EmailVerificationTemplate = (payload: {
   <div class="email-wrapper">
     <div class="email-card">
       <div class="email-header">
-        <h1>🔐 Verify Your BOARDPIX Account</h1>
+        <h1>🌴 Welcome to ANSTOP 🚗</h1>
       </div>
       <div class="email-body">
         <p>Hello ${payload?.username || "there"},</p>
-        <p>Thank you for choosing our BOARDPIX. To complete your registration, please use the OTP below to verify your account:</p>
+        <p>To complete your account creation, please enter the verification code below in the app or on the website:</p>
         <div class="otp-container">
           <div class="otp-code">${payload?.otp || "Sorry for the inconvenience. Please try again later"}</div>
         </div>
-        <p>This OTP will expire in <strong>${payload?.expiration || "Sorry for the inconvenience. Please try again later"} minutes</strong>. Please use it promptly to avoid delays.</p>
-        <p>If you did not request this verification, feel free to ignore this email.</p>
-        <a href="#" class="cta-button">Verify Now</a>
-        <p>Best Regards,<br/>The BOARDPIX Team</p>
+        <div class="expiration-note">
+          ⏳ This code is valid for ${payload?.expiration || "10"} minutes. After this period, you will need to request a new one.
+        </div>
+        <p>👉 If you did not initiate this request, you can safely ignore this message.</p>
+        <p>See you soon on ANSTOP,<br/>The ANSTOP Team</p>
       </div>
       <div class="footer">
-        &copy; ${new Date().getFullYear()} <strong>BOARDPIX</strong>. All rights reserved.
+        &copy; ${new Date().getFullYear()} <strong>ANSTOP</strong>. All rights reserved.
       </div>
     </div>
   </div>
 </body>
 </html>
 `;
+
+export default EmailVerificationTemplate;
 
 const ResetPasswordTemplate = (payload: {
 	otp: string;

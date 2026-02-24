@@ -80,7 +80,7 @@ class EmailPublicApi {
 	// Private method to send the email via Nodemailer
 	private async sendEmail(to: string, subject: string, body: string) {
 		const mailOptions = {
-			from:"no-reply@anstop.com",
+			from: `"ANSTOP" <no-reply@anstop.com>`,
 			to,
 			subject,
 			html: body,
