@@ -16,17 +16,13 @@ const createTransaction = async (userId: Types.ObjectId, payload: TTransactionDT
         session.startTransaction()
 
         let transaction;
-        if (payload.type === "WITHDRAWAL") {
-            transaction = new Transaction({
-                ...payload
-            });
-        } else {
+        if (payload.type !== "WITHDRAWAL") {
             transaction = new Transaction({
                 userId,
                 ...payload
             });
+            await transaction.save({ session });
         }
-        await transaction.save({ session });
 
         if (payload.type === "DEPOSIT" && payload.status === "COMPLETED") {
             const user = await User.findById(userId);
@@ -34,7 +30,7 @@ const createTransaction = async (userId: Types.ObjectId, payload: TTransactionDT
                 throw new ApiError(httpStatus.NOT_FOUND, "User not found");
             }
 
-            user.balance += payload.amount;
+            user.balance += payload.amount!;
             await user.save({ session });
         } else if (payload.type === "WITHDRAWAL" && payload.status === "COMPLETED") {
 
@@ -49,14 +45,20 @@ const createTransaction = async (userId: Types.ObjectId, payload: TTransactionDT
                 throw new ApiError(httpStatus.NOT_FOUND, "User not found");
             }
 
-
-
-            user.balance -= payload.amount;
-            await user.save({ session });
-            const withdrawalRequest = await WithdrawalRequest.findOne({ userId: payload.userId });
+            const withdrawalRequest = await WithdrawalRequest.findOne({ userId: payload.userId, status: "PENDING" });
             if (!withdrawalRequest) {
                 throw new ApiError(httpStatus.NOT_FOUND, "Withdrawal request not found");
             }
+
+            transaction = new Transaction({
+                amount: withdrawalRequest.amount,
+                ...payload
+            });
+
+            transaction.save({ session })
+
+            user.balance -= withdrawalRequest.amount;
+            await user.save({ session });
 
             withdrawalRequest.status = "COMPLETED";
             await withdrawalRequest.save({ session });
@@ -74,23 +76,20 @@ const createTransaction = async (userId: Types.ObjectId, payload: TTransactionDT
 
 const getAllTransations = async (filter: Record<string, any>, options: TPaginateOptions) => {
 
-    options.select = "transactionId riderId amount commissionRate commissionAmount driverEarningAmount type status driverId payoutDetails createdAt status"
+    options.select = "transactionId rideId amount type status payoutDetails createdAt"
     options.populate = {
-        path: "riderId",
-        select: "name email role"
+        path: "rideId",
+        select: "_id riderId driverId"
     }
     return await Transaction.paginate(filter, options)
 }
 
 
 const transactionDetails = async (transactionId: Types.ObjectId) => {
-    return await Transaction.findById(transactionId).select("transactionId riderId amount commissionRate commissionAmount driverEarningAmount type status driverId payoutDetails createdAt status").populate({
-        path: "riderId",
-        select: "name email"
-    }).populate({
-        path: "driverId",
-        select: "name email"
-    }).lean();
+    return await Transaction.findById(transactionId).select("rideId transactionId amount type status  payoutDetails createdAt").populate({
+        path: "rideId",
+        select: "_id riderId driverId"
+    })
 }
 
 export const TransactionService = {

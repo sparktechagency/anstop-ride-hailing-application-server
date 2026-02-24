@@ -6,23 +6,20 @@ type TTransactionStatus = typeof TRANSACTION_STATUS[keyof typeof TRANSACTION_STA
 type TTransactionType = typeof TRANSACTION_TYPE[keyof typeof TRANSACTION_TYPE]
 
 export type TTransaction = {
-   _id: Types.ObjectId;
-   riderId: Types.ObjectId;
-   driverId: Types.ObjectId;
-   amount: number;
-   commissionRate: number;
-   commissionAmount: number;
-   driverEarningAmount: number;
-   type: TTransactionType;
-   status: TTransactionStatus;
-   payoutDetails?: {
-      accountNumber: string;
-      accountHolderName: string;
-      accountType: string;
-      bankName: string;
-   }
-   createdAt: Date;
-   updatedAt: Date;
+    _id: Types.ObjectId;
+    rideId: Types.ObjectId;
+    amount: number;
+    transactionId: string;
+    type: TTransactionType;
+    status: TTransactionStatus;
+    payoutDetails?: {
+        accountNumber?: string;
+        accountHolderName?: string;
+        accountType?: string;
+        bankName?: string;
+    }
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface ITransactionModel extends Model<TTransaction> {

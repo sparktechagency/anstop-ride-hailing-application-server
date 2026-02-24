@@ -44,7 +44,7 @@ const createTransactionSchema = z.object({
         }),
         amount: z.number({
             required_error: "Amount is required",
-        }),
+        }).optional(),
         accountNumber: z.string({
             required_error: "Account number is required",
         }).optional(),
@@ -57,7 +57,7 @@ const createTransactionSchema = z.object({
         bankName: z.string({
             required_error: "Bank name is required",
         }).optional(),
-        type: z.enum([TRANSACTION_TYPE.DEPOSIT, TRANSACTION_TYPE.WITHDRAWAL, TRANSACTION_TYPE.RIDE_FARE, TRANSACTION_TYPE.RIDE_TIP, TRANSACTION_TYPE.RIDE_CANCELATION], {
+        type: z.enum([TRANSACTION_TYPE.DEPOSIT, TRANSACTION_TYPE.WITHDRAWAL, TRANSACTION_TYPE.RIDE_FARE, TRANSACTION_TYPE.RIDE_TIP], {
             required_error: "Type is required",
         }),
         status: z.enum([TRANSACTION_STATUS.COMPLETED, TRANSACTION_STATUS.FAILED], {
@@ -68,18 +68,31 @@ const createTransactionSchema = z.object({
         }).optional(),
     })
 })
-// if type is withdrawal then userId is required
-.refine(
-    (data) => {
-        if(data.body.type === "WITHDRAWAL" && !data.body.userId){
-            return false;
+    // if type is withdrawal then userId is required
+    .refine(
+        (data) => {
+            if (data.body.type === "WITHDRAWAL" && !data.body.userId) {
+                return false;
+            }
+            return true;
+        },
+        {
+            message: "userId is required for withdrawal",
         }
-        return true;
-    },
-    {
-        message: "userId is required for withdrawal",
-    }
-)
+    )
+
+    // if type is not withdrawal then amount is required
+    .refine(
+        (data) => {
+            if (data.body.type !== "WITHDRAWAL" && !data.body.amount) {
+                return false;
+            }
+            return true;
+        },
+        {
+            message: "Amount is required for non-withdrawal transactions",
+        }
+    )
 
 const transactionDetailsSchema = z.object({
     params: z.object({
