@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import { INBOX_STATUS } from "../../../../modules/messaging/inbox/inbox.constant";
 import Inbox from "../../../../modules/messaging/inbox/inbox.model";
 import { userSocketMap } from "../../../utils/socketStore";
+import SocketError from "../../../utils/socketError";
 
 interface JoinConversationPayload {
 	conversationId: string;
@@ -71,23 +72,24 @@ const emitNewMessageToConversation = (payload: {
 	);
 };
 
-const conversationEventHandler = (socket: Socket) => {
-	socket.on("join-conversation", async (data) => {
-		// if (!data || !data.conversationId || !data.participants) {
-		// 	console.log("invalid data");
-		// 	return;
-		// }
+export const joinConversationEventHandler = async (socket: Socket, data: any) => {
+	const { conversationId } = data;
+	const { _id: userId } = socket.payload;
 
-		const result = await joinConversation({
-			conversationId: data.conversationId,
-			participants: [socket.payload._id.toString()],
+	try {
+		await joinConversation({
+			conversationId,
+			participants: [userId.toString()],
 		});
-	});
+		return { success: true };
+	} catch (error: any) {
+		throw new SocketError("join-conversation", error.message || "Failed to join conversation", null);
+	}
 };
 
 export const ConversationSocket = {
 	joinConversation,
 	GetConversationRooms,
 	emitNewMessageToConversation,
-	conversationEventHandler,
+	joinConversationEventHandler,
 };
