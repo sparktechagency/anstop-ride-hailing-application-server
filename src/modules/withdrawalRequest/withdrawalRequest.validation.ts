@@ -10,7 +10,7 @@ const createSchema = z.object({
         accountHolderName: z.string().optional(),
         accountType: z.string().optional(),
     })
-}) 
+})
 
 const getAllSchema = z.object({
     query: z
@@ -41,8 +41,19 @@ const getAllSchema = z.object({
                 .default("asc")
                 .transform((val) => (val === "asc" ? 1 : -1)),
             status: z.enum([WITHDRAWAL_STATUS.PENDING, WITHDRAWAL_STATUS.COMPLETED, WITHDRAWAL_STATUS.REJECTED]).optional(),
+            startDate: z.coerce.date().optional(),
+            endDate: z.coerce.date().optional(),
         })
-        .strict()
+        .refine((data) => {
+            if (data.startDate && data.endDate) {
+                return data.startDate <= data.endDate
+            }
+            return true
+        }, {
+            message: "Start date must be before end date",
+            path: ["startDate", "endDate"]
+        })
+
 });
 
 const rejectSchema = z.object({

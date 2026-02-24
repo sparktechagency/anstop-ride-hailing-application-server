@@ -42,6 +42,7 @@ const getAllWithdrawalRequest = async (filter: any, options: TPaginateOptions) =
         path: "userId",
         select: "name email profilePicture role"
     }
+    console.log(filter)
     const withdrawalRequest = await WithdrawalRequest.paginate(filter, options)
     return withdrawalRequest
 }
