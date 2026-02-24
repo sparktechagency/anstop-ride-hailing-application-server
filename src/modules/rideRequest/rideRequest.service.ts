@@ -7,6 +7,8 @@ import { RideConstants } from "./rideRequest.constant";
 import { USER_ROLES } from "../user/user.constant";
 import { addToMap, userRoomMap, userSocketMap } from "../../socket/utils/socketStore";
 import { first } from "lodash";
+import { ComputeRoute } from "./rideRequest.utils";
+import { config } from "../../config";
 
 
 const findNearestDrivers = async (coordinates: [number, number]) => {
@@ -53,8 +55,6 @@ const createRideRequest = async (
 	userId: string,
 	payload: TCreateRideRequestDto
 ) => {
-	const { preferedFare } = payload;
-
 	// if userId is valid
 
 	const user = await User.findById(userId);
@@ -83,10 +83,20 @@ const createRideRequest = async (
 	if (existingRideRequest) {
 		throw new ApiError(
 			httpStatus.BAD_REQUEST,
-			"you already have a pending, accepted or ongoing ride request"
+			"you already have a incomplete ride request"
 		);
 	}
 
+
+	const { distanceKm, durationSeconds } = await ComputeRoute({
+		latitude: payload.pickUp.latitude,
+		longitude: payload.pickUp.longitude,
+	}, {
+		latitude: payload.destination.latitude,
+		longitude: payload.destination.longitude,
+	})
+
+	const fare = distanceKm * config.RIDE_REQUEST.PER_KM_RATE + config.RIDE_REQUEST.BASE_FARE + config.RIDE_REQUEST.PER_MINUTE_RATE * (durationSeconds / 60)
 
 	const rideRequestData = {
 		riderId: userId,
@@ -98,11 +108,13 @@ const createRideRequest = async (
 			name: payload.destination.name,
 			coordinates: [payload.destination.longitude, payload.destination.latitude],
 		},
-		distance: payload.distance,
-		baseFare: payload.baseFare,
+		distance: distanceKm,
+		fare: fare,
 		note: payload.note,
 		rideNeeds: payload.rideNeeds,
 		paymentMethod: payload.paymentMethod,
+		rideFor: payload.rideFor,
+		riderNumber: payload.riderNumber,
 	}
 
 	const newRideRequest = new RideRequest({
@@ -128,12 +140,6 @@ const createRideRequest = async (
 		);
 	}
 
-	const driversLocations = nearestDrivers.map(driver => ({
-		driverId: driver._id,
-		latitude: driver.location.coordinates[1],
-		longitude: driver.location.coordinates[0],
-		locationName: driver.locationName,
-	}));
 
 	console.log('dirverids', nearestDrivers);
 
@@ -200,7 +206,7 @@ const createRideRequest = async (
 						pickUp: newRideRequest.pickUp,
 						destination: newRideRequest.destination,
 						distance: newRideRequest.distance,
-						preferedFare,
+						fare: newRideRequest.fare,
 						note: newRideRequest.note,
 						rideNeeds: newRideRequest.rideNeeds,
 

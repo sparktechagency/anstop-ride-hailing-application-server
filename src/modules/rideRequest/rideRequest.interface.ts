@@ -13,6 +13,8 @@ type TCancelledBy = typeof RideConstants.CANCELLED_BY[keyof typeof RideConstants
 
 type TRefundStatus = typeof RideConstants.REFUND_STATUS[keyof typeof RideConstants.REFUND_STATUS];
 
+type TRideFor = typeof RideConstants.RIDE_FOR[keyof typeof RideConstants.RIDE_FOR];
+
 type TCancellationInfo = {
 	cancelledBy: TCancelledBy;
 	reason: string;
@@ -36,8 +38,9 @@ export interface TRideRequest {
 	pickUp: TAddress;
 	destination: TAddress;
 	distance: string;
-	baseFare: number;
-	finalFare: number;
+	fare: number;
+	rideFor: TRideFor;
+	riderNumber?: string;
 	note?: string;
 	rideNeeds?: TRideNeeds[];
 	status: TRideStatus;
