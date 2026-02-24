@@ -7,7 +7,7 @@ import asyncHandler from "../utils/asyncHandler";
 import ApiError from "../utils/ApiError";
 import jwt from "jsonwebtoken";
 import { TRole } from "../modules/user/user.interface";
-import { RoleRights } from "../modules/user/user.constant";
+import { RoleRights, USER_ROLES, USER_STATUS } from "../modules/user/user.constant";
 
 
 const auth = (
@@ -58,12 +58,28 @@ const auth = (
 			);
 		}
 
+
+
 		let user = await User.findById(_id);
 
 		if (!user) {
 			throw new ApiError(
 				httpStatus.UNAUTHORIZED,
 				"Invalid token! Please make sure you have a valid token."
+			);
+		}
+
+		if (user.role.includes(USER_ROLES.DRIVER) && !user.isOnboarded && !(req.url == "/onboarding-status" || req.url == "/onboard")) {
+			throw new ApiError(
+				httpStatus.UNAUTHORIZED,
+				"Unauthorized access! Please complete your onboarding process."
+			);
+		}
+
+		if (user.role.includes(USER_ROLES.DRIVER) && user.status != USER_STATUS.ACTIVE && !(req.url == "/onboarding-status" || req.url == "/onboard")){
+			throw new ApiError(
+				httpStatus.UNAUTHORIZED,
+				"Unauthorized access! Your account is not active. Please contact to admin."
 			);
 		}
 
