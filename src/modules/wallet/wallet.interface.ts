@@ -9,7 +9,7 @@ type TWalletStatus = typeof WalletConstant.WALLET_STATUS[keyof typeof WalletCons
 
 export interface IWallet {
 	_id: Types.ObjectId;
-	userId?: Types.ObjectId;
+	ownerId?: Types.ObjectId;
 	type: TWalletType;
 	status: TWalletStatus;
 	balance: number;
