@@ -130,6 +130,7 @@ const getAllUsersSchema = z.object({
 			role: z.enum([USER_ROLES.RIDER, USER_ROLES.DRIVER]).optional(),
 
 			status: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED]).optional(),
+			exclude: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED, USER_STATUS.PENDING]).optional(),
 		})
 		.strict(),
 })

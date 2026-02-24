@@ -65,17 +65,6 @@ const getSavedAddress = async (userId: Types.ObjectId, query: TSaveAddressQuery)
 	}
 }
 
-const setCurrentLocation = async (userId: Types.ObjectId, payload: TSaveAddressDto) => {
-	const user = await User.findById(userId);
-	if (!user) {
-		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-	}
-	console.log("user location", user.location, payload);
-	user.location.coordinates = [payload.longitude, payload.latitude];
-	user.locationName = payload.name;
-	await user.save();
-}
-
 const getMyProfile = async (userId: Types.ObjectId) => {
 	const user = await User.findById(userId).select("name email profilePicture phoneNumber address location locationName role")
 	if (!user) {
@@ -144,7 +133,7 @@ const changeUserStatus = async (payload: TChangeUserStatusDto) => {
 	return true;
 }
 
-const getDRiverDetails = async(payload: TGetDriverDetailsDto) => {
+const getDriverDetails = async(payload: TGetDriverDetailsDto) => {
 	const user = await User.findById(payload.userId).select("name email profilePicture phoneNumber address status role createdAt dateOfBirth gender nid drivingLicense carInformation isOnboarded");
 	if (!user) {
 		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
@@ -166,13 +155,12 @@ export const UserServices = {
 	setFcmToken,
 	saveAddress,
 	getSavedAddress,
-	setCurrentLocation,
 	updateProfile,
 	getMyProfile,
 	getBalance,
 	getAllUsers,
 	changeUserStatus,
-	getDRiverDetails
+	getDriverDetails
 }
 
 

@@ -52,20 +52,6 @@ const getSavedAddress = asyncHandler(async (req, res) => {
     );
 })
 
-const setCurrentLocation = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-    const payload = req.body;
-
-    await UserServices.setCurrentLocation(userId, payload)
-
-    res.status(httpStatus.OK).json(
-        new ApiResponse({
-            statusCode: httpStatus.OK,
-            message: "Current location set successfully",
-            data: null,
-        }),
-    );
-})
 
 const uploadFiles = asyncHandler(async (req, res) => {
     const { urls } = req.body;
@@ -158,6 +144,10 @@ const getAllUsers = asyncHandler(async (req, res) => {
         filter.status = query.status
     }
 
+    if (query.exclude) {
+        filter.status = { $ne: query.exclude }
+    }
+
     const result = await UserServices.getAllUsers(filter, options)
 
     res.status(httpStatus.OK).json(
@@ -165,7 +155,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
             statusCode: httpStatus.OK,
             message: "User status changed successfully",
             data: {
-                users: result.paginationResults,
+                users: result.paginationResults.results,
                 totalUsers: result.totalUsers
             },
             meta: result.paginationResults.meta,
@@ -176,7 +166,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 const getDriverDetails = asyncHandler(async (req, res) => {
     const userId = req.validatedData.params.userId;
 
-    const driverDetails = await UserServices.getDRiverDetails(
+    const driverDetails = await UserServices.getDriverDetails(
         {
             userId
         }
@@ -195,7 +185,6 @@ export const UserControllers = {
     setFcmToken,
     saveAddress,
     getSavedAddress,
-    setCurrentLocation,
     uploadFiles,
     updateProfile,
     getMyProfile,

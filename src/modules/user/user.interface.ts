@@ -74,7 +74,6 @@ export type TUser = {
 		coordinates: [number, number];
 	};
 	locationName: string;
-
 	isOnline: boolean;
 	isEngaged: boolean;
 	engagedRideId: Types.ObjectId | null;

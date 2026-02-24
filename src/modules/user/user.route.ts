@@ -18,10 +18,7 @@ router.post("/address", auth("COMMON"), requestValidator(UserValidation.saveAddr
 
 router.get("/address", auth("COMMON"), requestValidator(UserValidation.getAddressSchema), UserControllers.getSavedAddress);
 
-router.post("/current-location", auth("COMMON"), requestValidator(UserValidation.setCurrentLocationSchema), UserControllers.setCurrentLocation)
-
 router.post("/upload-files", auth("COMMON"), upload.array("files", 10), requestValidator(UserValidation.uploadFilesSchema), ExtractFilePaths, UserControllers.uploadFiles)
-
 
 router.get("/my-profile", auth("COMMON"), UserControllers.getMyProfile)
 
