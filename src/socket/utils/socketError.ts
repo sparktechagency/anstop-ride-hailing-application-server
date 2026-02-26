@@ -1,15 +1,14 @@
-class SocketError extends Error {
+class SocketError {
   event: string;
   message: string;
   data: any;
   success: boolean;
 
   constructor(event: string, message: string, data: any) {
-    super(message);
+    this.success = false;
     this.event = event;
     this.message = message;
     this.data = data;
-    this.success = false;
   }
 
   toResponse() {

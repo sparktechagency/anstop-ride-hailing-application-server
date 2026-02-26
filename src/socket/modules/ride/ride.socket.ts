@@ -1,14 +1,16 @@
 import { Socket } from "socket.io";
 import { RideRequest } from "../../../modules/rideRequest/rideRequest.model";
 import SocketError from "../../utils/socketError";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { RideConstants } from "../../../modules/rideRequest/rideRequest.constant";
 import { User } from "../../../modules/user/user.model";
 import { userSocketMap } from "../../utils/socketStore";
 import { USER_ROLES } from "../../../modules/user/user.constant";
+import { RideSocketDto } from "./ride.dto";
 
 
-const rideAcceptedEventHandler = async (socket: Socket, data: any) => {
+
+const rideAcceptedEventHandler = async (socket: Socket, data: RideSocketDto['AcceptRide']) => {
     const { rideId, driverId } = data;
     const { _id } = socket.payload;
 
@@ -47,7 +49,7 @@ const rideAcceptedEventHandler = async (socket: Socket, data: any) => {
     try {
         session.startTransaction();
 
-        ride.driverId = driverId;
+        ride.driverId = new Types.ObjectId(driverId);
         ride.status = RideConstants.RIDE_STATUS.ACCEPTED;
         await ride.save({ session });
 
@@ -61,7 +63,7 @@ const rideAcceptedEventHandler = async (socket: Socket, data: any) => {
         }
 
         driver.isEngaged = true;
-        driver.engagedRideId = rideId;
+        driver.engagedRideId = new Types.ObjectId(rideId);
         await driver.save({ session });
 
         const rider = await User.findOne({ _id: ride.riderId });
@@ -70,7 +72,7 @@ const rideAcceptedEventHandler = async (socket: Socket, data: any) => {
         }
 
         rider.isEngaged = true;
-        rider.engagedRideId = rideId;
+        rider.engagedRideId = new Types.ObjectId(rideId);
         await rider.save({ session });
 
         io.in(`ride-${rideId.toString()}`).socketsLeave(`ride-${rideId.toString()}`);
@@ -113,8 +115,8 @@ const rideAcceptedEventHandler = async (socket: Socket, data: any) => {
     return null;
 };
 
-const newOfferEventHandler = async (socket: Socket, data: any) => {
-    const { rideId, amount } = data;
+const newOfferEventHandler = async (socket: Socket, data: RideSocketDto['NewOffer']) => {
+    const { rideId } = data;
     const { _id: driverId } = socket.payload;
 
     const ride = await RideRequest.findOne({ _id: rideId });
@@ -142,7 +144,7 @@ const newOfferEventHandler = async (socket: Socket, data: any) => {
             carInformation: driver.carInformation
         },
         rideId,
-        amount
+        amount: ride.fare
     }
 
     const userSockets = userSocketMap.get(ride.riderId.toString());
@@ -155,8 +157,7 @@ const newOfferEventHandler = async (socket: Socket, data: any) => {
     return null;
 };
 
-
-const cancelOfferEventHandler = async (socket: Socket, data: any) => {
+const cancelOfferEventHandler = async (socket: Socket, data: RideSocketDto['CancelOffer']) => {
     const { rideId, driverId } = data;
 
     const ride = await RideRequest.findOne({ _id: rideId });
@@ -177,7 +178,7 @@ const cancelOfferEventHandler = async (socket: Socket, data: any) => {
     return null;
 };
 
-const pickupRiderEventHandler = async (socket: Socket, data: any) => {
+const pickupRiderEventHandler = async (socket: Socket, data: RideSocketDto['PickupRider']) => {
     const { _id } = socket.payload;
 
     const driver = await User.findOne({ _id });
@@ -221,7 +222,7 @@ const pickupRiderEventHandler = async (socket: Socket, data: any) => {
     return null;
 };
 
-const dropOffRiderEventHandler = async (socket: Socket, data: any) => {
+const dropOffRiderEventHandler = async (socket: Socket, data: RideSocketDto['DropOffRider']) => {
     const { _id } = socket.payload;
 
     const driver = await User.findOne({ _id });
@@ -279,7 +280,7 @@ const dropOffRiderEventHandler = async (socket: Socket, data: any) => {
     return null;
 };
 
-const cancelRideEventHandler = async (socket: Socket, data: any) => {
+const cancelRideEventHandler = async (socket: Socket, data: RideSocketDto['CancelRide']) => {
     const { rideId, reason } = data;
     const { _id } = socket.payload;
 

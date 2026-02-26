@@ -4,6 +4,8 @@ import { addToMap, removeFromMap, userSocketMap } from "./utils/socketStore";
 import SocketError from "./utils/socketError";
 import { ConversationService } from "../modules/messaging/conversation/conversation.service";
 import { InboxService } from "../modules/messaging/inbox/inbox.service";
+import { RideRequest } from "../modules/rideRequest/rideRequest.model";
+import { RideConstants } from "../modules/rideRequest/rideRequest.constant";
 
 export const connectionLifecycleHandler = async (
 	socket: Socket,
@@ -28,6 +30,15 @@ export const connectionLifecycleHandler = async (
 		if (!user.isOnline) {
 			user.isOnline = true;
 			await user.save();
+		}
+
+		const rideRequest = await RideRequest.findOne({
+			riderId: user._id,
+			status: RideConstants.RIDE_STATUS.ACCEPTED
+		})
+
+		if(rideRequest){
+			io.to(user._id.toString()).emit("new-ride-request", rideRequest);
 		}
 
 		socket.join(user._id.toString());
@@ -95,6 +106,17 @@ export const disconnectEventHandler = async (socket: Socket) => {
 
 		if (user.isOnline) {
 			user.isOnline = false;
+		}
+
+		const rideRequest = await RideRequest.findOneAndDelete({
+			riderId: user._id,
+			status: RideConstants.RIDE_STATUS.PENDING
+		})
+
+		if(rideRequest){
+			io.to(`ride:${rideRequest._id.toString()}`).emit("ride-unavailable", {
+				message: "Ride is not available due to rider unavaiability"
+			})
 		}
 
 		await user.save();
