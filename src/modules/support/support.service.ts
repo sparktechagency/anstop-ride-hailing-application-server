@@ -30,6 +30,8 @@ const getAllSupportMessages = async (filter: any, options: TPaginateOptions) => 
     const supportMessages = await Support.paginate(filter, options);
     return supportMessages;
 }
+
+
 export const SupportService = {
     createSupportMessage,
     getMySupportMessages,

@@ -50,6 +50,19 @@ const getAllSupportMessages = asyncHandler(async (req, res) => {
         sortOrder: query.sortOrder
     }
 
+    // if search query is present, add to filter by userId and name
+
+    const filter: any = {};
+
+    if (query.search) {
+        filter.$or = [
+            { subject: { $regex: query.search, $options: "i" } },
+            { message: { $regex: query.search, $options: "i" } },
+        ];
+
+        
+    }
+
     const supportMessages = await SupportService.getAllSupportMessages({}, options);
 
     res.status(200).json({

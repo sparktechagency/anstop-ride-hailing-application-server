@@ -35,6 +35,7 @@ const getAllSchema = z.object({
                 })
                 .default("asc")
                 .transform((val) => (val === "asc" ? 1 : -1)),
+            search: z.string().optional(),
         })
         .strict(),
 });
