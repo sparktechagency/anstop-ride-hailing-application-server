@@ -7,7 +7,7 @@ import { TLocation, TStatus, TUser } from "./user.interface";
 import { TChangeUserStatusDto, TGetDriverDetailsDto, TSaveAddressDto, TSaveAddressQuery, TUpdateProfileDto } from "./user.dto";
 import { locationExists } from "./user.utils";
 import { TPaginateOptions } from "../../types/paginate";
-import { USER_ROLES } from "./user.constant";
+import { USER_ROLES, USER_STATUS } from "./user.constant";
 
 
 
@@ -129,12 +129,15 @@ const changeUserStatus = async (payload: TChangeUserStatusDto) => {
 		throw new ApiError(httpStatus.BAD_REQUEST, `${user.name} is already ${payload.status}`)
 	}
 	user.status = payload.status;	
+	if(payload.status === USER_STATUS.REJECTED){
+		user.rejectionReason = payload.rejectionReason;
+	}
 	await user.save();
 	return true;
 }
 
 const getDriverDetails = async(payload: TGetDriverDetailsDto) => {
-	const user = await User.findById(payload.userId).select("name email profilePicture phoneNumber address status role createdAt dateOfBirth gender nid drivingLicense carInformation isOnboarded");
+	const user = await User.findById(payload.userId).select("name email profilePicture phoneNumber address status role createdAt dateOfBirth gender nid drivingLicense carInformation isOnboarded rejectionReason");
 	if (!user) {
 		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 	}

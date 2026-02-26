@@ -58,6 +58,7 @@ export type TUser = {
 	password: string;
 	role: TRole[];
 	status: TStatus;
+	rejectionReason?: string;
 	homeLocation: TLocation;
 	workLocation: TLocation;
 	bookMarks: [TLocation];

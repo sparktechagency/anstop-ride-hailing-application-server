@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import { TPaginateOptions } from "../../types/paginate";
 import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import { TSaveAddressDto, TSaveAddressQuery } from "./user.dto";
 import { UserServices } from "./user.service";
 import httpStatus from "http-status";
+import { Types } from "mongoose";
 
 
 const setFcmToken = asyncHandler(async (req, res) => {
@@ -146,6 +148,26 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
     if (query.exclude) {
         filter.status = { $ne: query.exclude }
+    }
+
+    if (query.startDate && query.endDate) {
+        filter.createdAt = {
+            $gte: new Date(query.startDate),
+            $lte: new Date(query.endDate),
+        }
+    }
+
+    if (query.search) {
+        const orConditions: any[] = [
+            { name: { $regex: query.search, $options: "i" } },
+            { email: { $regex: query.search, $options: "i" } },
+            { phoneNumber: { $regex: query.search, $options: "i" } },
+        ];
+
+        if (Types.ObjectId.isValid(query.search)) {
+            orConditions.push({ _id: new Types.ObjectId(query.search) });
+        }
+        filter.$or = orConditions;
     }
 
     const result = await UserServices.getAllUsers(filter, options)

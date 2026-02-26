@@ -109,6 +109,9 @@ const userSchema = new Schema<TUser, IUserModel>(
 			enum: Object.values(USER_STATUS),
 			default: "PENDING",
 		},
+		rejectionReason: {
+			type: String,
+		},
 		homeLocation: locationScheama,
 		workLocation: locationScheama,
 		bookMarks: [locationScheama],
