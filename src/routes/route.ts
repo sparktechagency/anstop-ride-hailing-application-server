@@ -41,10 +41,10 @@ const routesInfo = [
 		path: "/legal-documents",
 		route: LegalDocumentRoutes,
 	},
-	{
-		path: "/rides",
-		route: RideRoutes,
-	},
+	// {
+	// 	path: "/rides",
+	// 	route: RideRoutes,
+	// },
 	{
 		path: "/messages",
 		route: MessageRoutes,

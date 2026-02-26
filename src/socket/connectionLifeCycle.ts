@@ -33,12 +33,12 @@ export const connectionLifecycleHandler = async (
 		}
 
 		const rideRequest = await RideRequest.findOne({
-			riderId: user._id,
-			status: RideConstants.RIDE_STATUS.ACCEPTED
-		})
+			$or: [{ riderId: user._id }, { driverId: user._id }],
+			status: {$nin: [RideConstants.RIDE_STATUS.PENDING, RideConstants.RIDE_STATUS.CANCELLED]},
+		});
 
-		if(rideRequest){
-			io.to(user._id.toString()).emit("new-ride-request", rideRequest);
+		if (rideRequest && !rideRequest.isPaymentCompleted) {
+			io.to(user._id.toString()).emit("incompleted-ride", rideRequest);
 		}
 
 		socket.join(user._id.toString());
@@ -56,7 +56,7 @@ export const connectionLifecycleHandler = async (
 		const roomId = user._id.toString();
 		const isInRoom = io.sockets.adapter.rooms.get(roomId)?.has(socket.id);
 
-		// add to map 
+		// add to map
 		addToMap(userSocketMap, user._id.toString(), socket.id);
 
 		console.log(`Socket ${socket.id} in room ${roomId}?`, isInRoom); // should be true
@@ -110,13 +110,16 @@ export const disconnectEventHandler = async (socket: Socket) => {
 
 		const rideRequest = await RideRequest.findOneAndDelete({
 			riderId: user._id,
-			status: RideConstants.RIDE_STATUS.PENDING
-		})
+			status: RideConstants.RIDE_STATUS.PENDING,
+		});
 
-		if(rideRequest){
-			io.to(`ride:${rideRequest._id.toString()}`).emit("ride-unavailable", {
-				message: "Ride is not available due to rider unavaiability"
-			})
+		if (rideRequest) {
+			io.to(`ride:${rideRequest._id.toString()}`).emit(
+				"ride-unavailable",
+				{
+					message: "Ride is not available due to rider unavaiability",
+				}
+			);
 		}
 
 		await user.save();

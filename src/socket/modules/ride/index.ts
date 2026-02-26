@@ -313,6 +313,8 @@ export const cancelRideEventHandler = async (socket: Socket, data: any) => {
     return null;
 };
 
+
+
 export const RideSocket = {
     newBidEventHandler,
     acceptBidEventHandler,
