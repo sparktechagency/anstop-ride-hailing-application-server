@@ -26,4 +26,11 @@ route.patch(
 	RideRequestController.cancelRideRequest
 );
 
+route.get(
+	"/calculate-fare",
+	requestValidator(RideRequestValidation.calculateFareSchema),
+	auth(USER_ROLES.RIDER),
+	RideRequestController.calculateFare
+);
+
 export const RideRequestRoutes = route;
