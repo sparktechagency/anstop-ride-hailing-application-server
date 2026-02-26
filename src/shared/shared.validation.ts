@@ -11,7 +11,7 @@ export const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ID 
 export const usernameValidationSchema = z.object({
 	firstName: z.string().trim().min(2, "First name is required"),
 	lastName: z.string().trim().min(2, "Last name is required"),
-})
+}).strict()
 
 // Validation schema and type for setting user address
 
@@ -32,22 +32,22 @@ export const addressValidationSchema = z.object({
 	addressLabel: z.string().trim().min(1, "Address label is required"),
 	// validate coordinates
 	coordinates: coordinatesValidationSchema,
-})
+}).strict()
 
 
 
 // user and driver shared validation
 
 export const languagePreferenceValidationSchema = z.object({
-    languagePreference: z.enum(["en", "es", "fr"], {
-        message: "Language preference must be one of 'en', 'es', or 'fr'",
-    })
-});
+	languagePreference: z.enum(["en", "es", "fr"], {
+		message: "Language preference must be one of 'en', 'es', or 'fr'",
+	})
+}).strict();
 
 
 // Validation schema and type for setting user address
 
 export const setUserAddressValidationSchema = z.object({
-    address: addressValidationSchema
-});
+	address: addressValidationSchema
+}).strict();
 

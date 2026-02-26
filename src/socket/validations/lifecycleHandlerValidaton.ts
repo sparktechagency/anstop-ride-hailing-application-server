@@ -14,4 +14,4 @@ export const connectionLifeCycleHandlerValidationSchema = z.object({
       message: 'Invalid role',
     }),
   }),
-});
+}).strict();

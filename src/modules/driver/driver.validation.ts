@@ -12,14 +12,14 @@ const carInformationValidationSchema = z
 		licensePlate: z.object({
 			number: z.string().trim().min(1, "License plate number is required"),
 			picture: z.string().url("License plate picture must be a valid URL"),
-		}),
+		}).strict(),
 		registrationCertificate: z.object({
 			number: z.string().trim().min(1, "Registration certificate number is required"),
 			frontPicture: z.string().url("Registration certificate front picture must be a valid URL"),
 			backPicture: z.string().url("Registration certificate back picture must be a valid URL"),
-		}),
-		
-	})
+		}).strict(),
+
+	}).strict()
 	.refine(
 		(data) => {
 			const { yearOfManufacture } = data;
@@ -47,10 +47,10 @@ const carInformationValidationSchema = z
 
 
 const nidAndDriverLicenseValidationSchema = z.object({
-		number: z.string().trim().min(1, "NID number is required"),
-		frontPicture: z.string().url("NID front picture must be a valid URL"),
-		backPicture: z.string().url("NID back picture must be a valid URL"),
-	})
+	number: z.string().trim().min(1, "NID number is required"),
+	frontPicture: z.string().url("NID front picture must be a valid URL"),
+	backPicture: z.string().url("NID back picture must be a valid URL"),
+}).strict()
 
 // Validation schema for onboarding a driver
 const OnboardingSchema = z.object({
@@ -58,20 +58,20 @@ const OnboardingSchema = z.object({
 		nid: nidAndDriverLicenseValidationSchema,
 		drivingLicense: nidAndDriverLicenseValidationSchema,
 		carInformation: carInformationValidationSchema,
-		profilePicture: z.string().url("Profile picture must be a valid URL"),	
+		profilePicture: z.string().url("Profile picture must be a valid URL"),
 		dateOfBirth: z.coerce.date(),
 		address: z.string().trim().min(1, "Address is required"),
 		gender: z.enum([GENDER.FEMALE, GENDER.MALE, GENDER.OTHER], {
-				errorMap: (issue) => {
-					if (issue.code === "invalid_enum_value") {
-						return {
-							message: `"${issue.received}" is not a valid gender. Gender must be one of: ${GENDER.FEMALE}, ${GENDER.MALE}, ${GENDER.OTHER}`,
-						};
-					}
-					return { message: "Invalid gender." };
-				},
-			}),
-	})
+			errorMap: (issue) => {
+				if (issue.code === "invalid_enum_value") {
+					return {
+						message: `"${issue.received}" is not a valid gender. Gender must be one of: ${GENDER.FEMALE}, ${GENDER.MALE}, ${GENDER.OTHER}`,
+					};
+				}
+				return { message: "Invalid gender." };
+			},
+		}),
+	}).strict()
 })
 
 

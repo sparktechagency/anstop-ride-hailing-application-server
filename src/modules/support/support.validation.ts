@@ -4,7 +4,7 @@ const createSchema = z.object({
     body: z.object({
         subject: z.string().min(3, "Subject must be at least 3 characters long"),
         message: z.string().min(3, "Message must be at least 3 characters long"),
-    })
+    }).strict()
 })
 
 const getAllSchema = z.object({

@@ -66,7 +66,7 @@ const createTransactionSchema = z.object({
         userId: z.string({
             required_error: "User ID is required",
         }).optional(),
-    })
+    }).strict()
 })
     // if type is withdrawal then userId is required
     .refine(
@@ -99,7 +99,7 @@ const transactionDetailsSchema = z.object({
         transactionId: z.string({
             required_error: "Transaction ID is required",
         }),
-    })
+    }).strict()
 })
 
 export const TransactionValidation = {

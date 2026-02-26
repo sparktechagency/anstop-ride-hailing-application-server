@@ -8,12 +8,12 @@ import { SAVED_ADDRESS_TYPE, USER_ROLES, USER_STATUS } from "./user.constant";
 const onboardUserValidationSchema = z.object({
 	username: usernameValidationSchema,
 	email: z.string().email("Invalid email format"),
-});
+}).strict();
 
 const setFcmTokenSchema = z.object({
 	body: z.object({
 		fcmToken: z.string().min(1, "FCM token is required"),
-	})
+	}).strict()
 });
 
 const saveAddressSchema = z.object({
@@ -91,7 +91,7 @@ const updateProfileSchema = z.object({
 		email: z.string().email().optional(),
 		address: z.string().optional(),
 		profilePicture: z.string().url().optional(),
-	})
+	}).strict()
 		// at least one filed is requiered
 		.refine((data) => data.name || data.phoneNumber || data.email || data.address || data.profilePicture, {
 			message: "At least one field is required",
@@ -129,23 +129,45 @@ const getAllUsersSchema = z.object({
 
 			role: z.enum([USER_ROLES.RIDER, USER_ROLES.DRIVER]).optional(),
 
-			status: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED]).optional(),
+			status: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED, USER_STATUS.PENDING]).optional(),
 			exclude: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED, USER_STATUS.PENDING]).optional(),
+			startDate: z.string().optional(),
+			endDate: z.string().optional(),
+			search: z.string().optional(),
 		})
-		.strict(),
+		.strict()
+		.refine((data) => {
+			if (data.startDate && data.endDate) {
+				return data.startDate <= data.endDate
+			}
+			return true
+		}, {
+			message: "Start date must be before end date",
+			path: ["startDate", "endDate"]
+		})
+	,
 })
 
 const changeUserStatusSchema = z.object({
 	body: z.object({
 		userId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid user ID"),
 		status: z.enum([USER_STATUS.ACTIVE, USER_STATUS.SUSPENDED, USER_STATUS.REJECTED]),
+		rejectionReason: z.string().optional(),
+	}).strict().refine((data) => {
+		if (data.status === USER_STATUS.REJECTED && !data.rejectionReason) {
+			return false
+		}
+		return true
+	}, {
+		message: "Rejection reason is required when status is rejected",
+		path: ["rejectionReason"]
 	})
 })
 
 const getDriverDetailsSchema = z.object({
 	params: z.object({
 		userId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid user ID"),
-	})
+	}).strict()
 })
 
 export const UserValidation = {

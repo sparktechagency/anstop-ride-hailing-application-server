@@ -32,7 +32,7 @@ export const userRoleValidationSchema = z
 		errorMap: (issue) => {
 			if (issue.code === "invalid_enum_value") {
 				return {
-					message: `"${issue.received}" is not a valid role. Role must be one of: Rider or Driver.`,
+					message: `"${issue.received}" is not a valid role. Role must be one of: ${USER_ROLES.RIDER} or ${USER_ROLES.DRIVER}.`,
 				};
 			}
 			return { message: "Invalid role." };
@@ -62,7 +62,7 @@ const SignInSchema = z.object({
 		password: z
 			.string({ required_error: "Password is required" })
 			.min(6, { message: "Password must be at least 6 characters long" }),
-	}),
+	}).strict(),
 });
 
 const OtpVerificationSchema = z.object({
@@ -79,7 +79,7 @@ const OtpVerificationSchema = z.object({
 				return { message: "Invalid type." };
 			},
 		}),
-	})
+	}).strict()
 });
 
 
@@ -87,13 +87,13 @@ const ResendOtpSchema = z.object({
 	body: z.object({
 		email: z.string({ required_error: "Email is required" }).email(),
 		type: z.enum([OTP_TYPE.EMAIL_VERIFICATION, OTP_TYPE.PASSWORD_RESET]),
-	})
+	}).strict()
 });
 
 const ForgotPasswordSchema = z.object({
 	body: z.object({
 		email: z.string({ required_error: "Email is required" }).email(),
-	})
+	}).strict()
 });
 
 const ResetPasswordSchema = z.object({
@@ -101,7 +101,7 @@ const ResetPasswordSchema = z.object({
 		password: z
 			.string({ required_error: "Password is required" })
 			.min(6, { message: "Password must be at least 6 characters long" }),
-	})
+	}).strict()
 });
 
 const ChangePasswordSchema = z.object({
@@ -112,14 +112,14 @@ const ChangePasswordSchema = z.object({
 		newPassword: z
 			.string({ required_error: "New Password is required" })
 			.min(6, { message: "New Password must be at least 6 characters long" }),
-		confirmPassword: z.string().min(6, {message: "Confirm password must be at least 6 character long"})
-	})
-	// confirm password must be same as new password
-	.refine((data) => data.newPassword === data.confirmPassword, {
-		message: "Confirm password must be same as new password",
-	})
+		confirmPassword: z.string().min(6, { message: "Confirm password must be at least 6 character long" })
+	}).strict()
+		// confirm password must be same as new password
+		.refine((data) => data.newPassword === data.confirmPassword, {
+			message: "Confirm password must be same as new password",
+		})
 });
-	
+
 
 export const AuthValidation = {
 	SignUpScheam,

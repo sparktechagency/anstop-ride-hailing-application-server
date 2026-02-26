@@ -4,13 +4,13 @@ import { z } from "zod";
 const getLegalDocumentsSchema = z.object({
     query: z.object({
         type: z.enum([LEGAL_DOCUMENT_TYPE.PRIVACY_POLICY, LEGAL_DOCUMENT_TYPE.TERMS_AND_CONDITIONS, LEGAL_DOCUMENT_TYPE.ABOUT_US, LEGAL_DOCUMENT_TYPE.REFUND_POLICY], {
-        errorMap: () => {
-            return {
-                message: `Invalid legal document type. Valid types are ${Object.values(LEGAL_DOCUMENT_TYPE).join(", ")}`,
-            };
-        },
-    }),
-    })
+            errorMap: () => {
+                return {
+                    message: `Invalid legal document type. Valid types are ${Object.values(LEGAL_DOCUMENT_TYPE).join(", ")}`,
+                };
+            },
+        }),
+    }).strict()
 });
 
 const updateSchema = z.object({
@@ -25,7 +25,7 @@ const updateSchema = z.object({
     ),
     params: z.object({
         id: z.string(),
-    })
+    }).strict()
 })
 
 export const LegalDocumentValidation = {
