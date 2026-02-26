@@ -9,7 +9,7 @@ const createSchema = z.object({
         routingNumber: z.string().optional(),
         accountHolderName: z.string().optional(),
         accountType: z.string().optional(),
-    })
+    }).strict()
 })
 
 const getAllSchema = z.object({
@@ -43,7 +43,8 @@ const getAllSchema = z.object({
             status: z.enum([WITHDRAWAL_STATUS.PENDING, WITHDRAWAL_STATUS.COMPLETED, WITHDRAWAL_STATUS.REJECTED]).optional(),
             startDate: z.coerce.date().optional(),
             endDate: z.coerce.date().optional(),
-        })
+            search: z.string().optional(),
+        }).strict()
         .refine((data) => {
             if (data.startDate && data.endDate) {
                 return data.startDate <= data.endDate
@@ -60,7 +61,7 @@ const rejectSchema = z.object({
     body: z.object({
         rejectReason: z.string().min(3),
         requestId: z.string().min(3),
-    })
+    }).strict()
 })
 
 export const withdrawalRequestValidation = {

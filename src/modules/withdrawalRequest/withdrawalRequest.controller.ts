@@ -1,4 +1,5 @@
 
+import { Types } from "mongoose";
 import asyncHandler from "../../utils/asyncHandler";
 import { withdrawalRequestService } from "./withdrawalRequest.service";
 
@@ -33,12 +34,19 @@ const getAllWithdrawalRequest = asyncHandler(async (req, res) => {
     }
 
     // filter by date range on createdAt
-
     if (query.startDate && query.endDate) {
         filter.createdAt = {
             $gte: new Date(query.startDate),
             $lte: new Date(query.endDate),
         }
+    }
+
+    if (query.search && Types.ObjectId.isValid(query.search)) {
+        const orConditions: any[] = [
+            { _id: new Types.ObjectId(query.search) },
+            { userId: new Types.ObjectId(query.search) },
+        ];
+        filter.$or = orConditions;
     }
 
     const result = await withdrawalRequestService.getAllWithdrawalRequest(filter, options)
