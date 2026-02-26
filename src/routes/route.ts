@@ -12,6 +12,7 @@ import { TransactionRoutes } from "../modules/transaction/transaction.route";
 import { SupportRoutes } from "../modules/support/support.route";
 import { WithdrawalRequestRoutes } from "../modules/withdrawalRequest/withdrawalRequest.route";
 import { AdminRoutes } from "../modules/admin/admin.route";
+import { ReviewRoutes } from "../modules/review/review.route";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ const routesInfo = [
 	{
 		path: "/legal-documents",
 		route: LegalDocumentRoutes,
-	}, 
+	},
 	{
 		path: "/rides",
 		route: RideRoutes,
@@ -71,6 +72,10 @@ const routesInfo = [
 	{
 		path: "/admin",
 		route: AdminRoutes
+	},
+	{
+		path: "/reviews",
+		route: ReviewRoutes
 	}
 ];
 

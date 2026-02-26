@@ -209,6 +209,8 @@ const createRideRequest = async (
 						fare: newRideRequest.fare,
 						note: newRideRequest.note,
 						rideNeeds: newRideRequest.rideNeeds,
+						riderNumber: newRideRequest.riderNumber,
+						rideFor: newRideRequest.rideFor,
 
 					});
 				}

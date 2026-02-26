@@ -82,6 +82,10 @@ const rideRequestSchema = new Schema<TRideRequest>(
 			enum: Object.values(RideConstants.PAYMENT_METHOD),
 			default: RideConstants.PAYMENT_METHOD.CASH,
 		},
+		isPaymentCompleted: {
+			type: Boolean,
+			default: false,
+		},
 
 	},
 	{

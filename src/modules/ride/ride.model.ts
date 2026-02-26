@@ -79,4 +79,4 @@ const rideSchema = new Schema<TRide>(
     }
 )
 
-export const Ride = model<TRide>("Ride", rideSchema);
+// export const Ride = model<TRide>("Ride", rideSchema);

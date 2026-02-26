@@ -45,6 +45,7 @@ export interface TRideRequest {
 	rideNeeds?: TRideNeeds[];
 	status: TRideStatus;
 	paymentMethod: TPaymentMethod;
+	isPaymentCompleted: boolean;
 	cancellationInfo?: TCancellationInfo;
 	createdAt: Date;
 	updatedAt: Date;
