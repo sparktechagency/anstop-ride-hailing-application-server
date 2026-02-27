@@ -91,4 +91,10 @@ export const config = {
 		PER_KM_RATE: Number(process.env.PER_KM_RATE) || 1.25,
 		PER_MINUTE_RATE: Number(process.env.PER_MINUTE_RATE) || 0.30,
 	},
+
+	STRIPE: {
+		SECRET_KEY: process.env.STRIPE_SECRET_KEY || "",
+		WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || "",
+		API_VERSION: process.env.STRIPE_API_VERSION || "2025-11-17.clover",
+	},
 };
