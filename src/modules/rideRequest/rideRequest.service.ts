@@ -13,6 +13,8 @@ import {
 import { first } from "lodash";
 import { ComputeRoute } from "./rideRequest.utils";
 import { config } from "../../config";
+import mongoose, { Types } from "mongoose";
+import { StripeService } from "../../stripe";
 
 const findNearestDrivers = async (coordinates: [number, number]) => {
 	const drivers = await User.aggregate([
@@ -44,6 +46,7 @@ const findNearestDrivers = async (coordinates: [number, number]) => {
 				location: 1,
 				locationName: 1,
 				email: 1,
+				profilePicture: 1,
 			},
 		},
 	]);
@@ -74,14 +77,22 @@ const createRideRequest = async (
 	// case 1: user has a pending, accepted or ongoing ride request
 	const existingRideRequest = await RideRequest.findOne({
 		riderId: userId,
-		status: {
-			$in: [
-				RideConstants.RIDE_STATUS.ACCEPTED,
-				RideConstants.RIDE_STATUS.ONGOING,
-				RideConstants.RIDE_STATUS.PENDING,
-			],
-		},
+		$or: [
+			{ status: RideConstants.RIDE_STATUS.PENDING },
+			{ status: RideConstants.RIDE_STATUS.ACCEPTED },
+			{ status: RideConstants.RIDE_STATUS.ONGOING },
+			{ isPaymentCompleted: false },
+		],
+		// status: {
+		// 	$in: [
+		// 		RideConstants.RIDE_STATUS.ACCEPTED,
+		// 		RideConstants.RIDE_STATUS.ONGOING,
+		// 		RideConstants.RIDE_STATUS.PENDING,
+		// 	],
+		// },
 	});
+
+	console.log("existingRideRequest", existingRideRequest);
 
 	if (existingRideRequest) {
 		throw new ApiError(
@@ -344,9 +355,84 @@ const calCulateFare = async (payload: TCalculateFareDto) => {
 	return { fare, distance: distanceKm, duration: durationSeconds };
 };
 
+
+const payRideFare = async (userId: Types.ObjectId) => {
+
+	const session = await mongoose.startSession()
+
+	try {
+		const response: { message: string, data: any } = { message: "", data: null }
+		session.startTransaction()
+
+		// pass session to all the queries
+
+		const rideRequest = await RideRequest.findOne({ riderId: userId }).session(session)
+
+		if (!rideRequest) {
+			throw new ApiError(httpStatus.NOT_FOUND, "Ride request not found");
+		}
+
+		if (rideRequest.status !== RideConstants.RIDE_STATUS.COMPLETED) {
+			throw new ApiError(httpStatus.BAD_REQUEST, "The ride is not completed yet");
+		}
+
+		if (rideRequest.isPaymentCompleted) {
+			throw new ApiError(httpStatus.BAD_REQUEST, "The ride is already paid");
+		}
+
+		if (!rideRequest.driverId) {
+			throw new ApiError(httpStatus.BAD_REQUEST, "Driver not found");
+		}
+
+		if (rideRequest.paymentMethod === RideConstants.PAYMENT_METHOD.CASH) {
+
+			io.to(rideRequest.driverId.toString()).emit("payment-confirmation", {
+				rideId: rideRequest._id.toString(),
+				fare: rideRequest.fare,
+			})
+
+			response.message = "Please wait for the driver confirmation"
+		} else if (rideRequest.paymentMethod === RideConstants.PAYMENT_METHOD.WALLET) {
+
+			const user = await User.findById(userId).session(session)
+
+			if (!user) {
+				throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+			}
+
+			if (user.balance < rideRequest.fare) {
+				throw new ApiError(httpStatus.BAD_REQUEST, "Insufficient wallet balance. Please add more money to your wallet or user card/cash option");
+			}
+
+			user.balance -= rideRequest.fare;
+			await user.save({ session });
+
+			response.message = "Payment successful"
+		} else if (rideRequest.paymentMethod === RideConstants.PAYMENT_METHOD.CARD) {
+			const session = await StripeService.createCheckoutSession(rideRequest.fare * 100);
+			response.message = "Please use the secure payment gateway to complete the payment"
+			response.data = session
+		}
+
+		await session.commitTransaction()
+		return response;
+	} catch (error) {
+		await session.abortTransaction()
+		console.log(error)
+		throw error
+	} finally {
+		await session.endSession()
+	}
+
+
+
+
+}
+
 export const RideRequestService = {
 	createRideRequest,
 	getAllRideRequests,
 	cancelRideRequest,
 	calCulateFare,
+	payRideFare
 };

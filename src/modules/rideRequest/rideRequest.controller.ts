@@ -83,9 +83,26 @@ const calculateFare = asyncHandler(async (req, res) => {
 	);
 });
 
+const payRideFare = asyncHandler(async (req, res) => {
+	const { _id: userId } = req.user;
+
+
+	const response = await RideRequestService.payRideFare(
+		userId,
+	);
+	res.status(httpStatus.CREATED).json(
+		new ApiResponse({
+			statusCode: httpStatus.CREATED,
+			message: response.message,
+			data: response.data,
+		})
+	);
+});
+
 export const RideRequestController = {
 	createRideRequest,
 	cancelRideRequest,
 	getAllRideRequests,
-    calculateFare
+	calculateFare,
+	payRideFare
 };

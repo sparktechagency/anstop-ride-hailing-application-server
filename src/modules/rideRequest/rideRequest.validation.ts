@@ -73,6 +73,8 @@ const calculateFareSchema = z.object({
 		.strict(),
 });
 
+
+
 export const RideRequestValidation = {
 	createSchema,
 	calculateFareSchema,

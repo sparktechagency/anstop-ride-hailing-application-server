@@ -33,4 +33,6 @@ route.get(
 	RideRequestController.calculateFare
 );
 
+route.post("/pay-ride-fare", auth(USER_ROLES.RIDER), RideRequestController.payRideFare)
+
 export const RideRequestRoutes = route;
