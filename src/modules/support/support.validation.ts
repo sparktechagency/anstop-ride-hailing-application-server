@@ -40,7 +40,14 @@ const getAllSchema = z.object({
         .strict(),
 });
 
+const updateSchema = z.object({
+    params: z.object({
+        id: z.string().optional(),
+    }).strict(),
+})
+
 export const SupportValidation = {
     createSchema,
-    getAllSchema
+    getAllSchema,
+    updateSchema
 }

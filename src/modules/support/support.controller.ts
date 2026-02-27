@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import asyncHandler from "../../utils/asyncHandler";
 import { SupportService } from "./support.service";
 
@@ -28,7 +29,7 @@ const getMySupportMessage = asyncHandler(async (req, res) => {
         sortOrder: query.sortOrder
     }
 
-    const supportMessages = await SupportService.getMySupportMessages({userId}, options);
+    const supportMessages = await SupportService.getMySupportMessages({ userId }, options);
 
     res.status(200).json({
         success: true,
@@ -60,7 +61,7 @@ const getAllSupportMessages = asyncHandler(async (req, res) => {
             { message: { $regex: query.search, $options: "i" } },
         ];
 
-        
+
     }
 
     const supportMessages = await SupportService.getAllSupportMessages({}, options);
@@ -73,9 +74,21 @@ const getAllSupportMessages = asyncHandler(async (req, res) => {
     })
 })
 
+const updateSupportMessage = asyncHandler(async (req, res) => {
+    const payload = req.params.id;
+
+    const supportMessage = await SupportService.updateSupportMessage(new Types.ObjectId(payload));
+
+    res.status(200).json({
+        success: true,
+        message: "Support message updated successfully",
+        data: supportMessage
+    })
+})
 
 export const SupportController = {
     createSupportMessage,
     getMySupportMessage,
-    getAllSupportMessages
+    getAllSupportMessages,
+    updateSupportMessage
 }

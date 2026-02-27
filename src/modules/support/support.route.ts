@@ -15,4 +15,6 @@ route.get("/", auth(USER_ROLES.ADMIN), requestValidator(SupportValidation.getAll
 
 route.get("/my-messages", auth(USER_ROLES.RIDER, USER_ROLES.DRIVER), requestValidator(SupportValidation.getAllSchema), SupportController.getMySupportMessage)
 
+route.put("/:id", auth(USER_ROLES.ADMIN), requestValidator(SupportValidation.updateSchema), SupportController.updateSupportMessage)
+
 export const SupportRoutes = route;
