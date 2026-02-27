@@ -118,6 +118,7 @@ export const disconnectEventHandler = async (socket: Socket) => {
 				"ride-unavailable",
 				{
 					message: "Ride is not available due to rider unavaiability",
+					rideId: rideRequest._id.toString(),
 				}
 			);
 		}
